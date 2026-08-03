@@ -1,4 +1,5 @@
-import { VerticalBox, HorizontalBox, Button } from "std-widgets.slint";
+import { VerticalBox, HorizontalBox } from "std-widgets.slint";
+import { sidebar } from "./components/sidebar.slint";
 
 export component MainWindow inherits Window {
 
@@ -10,59 +11,11 @@ export component MainWindow inherits Window {
     background: #121212;
 
     HorizontalBox {
-
-        // Sidebar
-        Rectangle {
-            width: 280px;
-            background: #1e1e1e;
-
-            VerticalBox {
-                padding: 20px;
-                spacing: 15px;
-
-                Text {
-                    text: "Fragrance Vault";
-                    font-size: 35px;
-                    color: white;
-                    wrap: word-wrap;
-                    horizontal-alignment: center;
-                    vertical-alignment: center;
-                }
-
-                Rectangle {
-                    height: 20px;
-                }
-
-                Button {
-                    text: "🏠 Dashboard";
-                }
-
-                Button {
-                    text: "📚 Collection";
-                }
-
-                Button {
-                    text: "⭐ Rankings";
-                }
-
-                Button {
-                    text: "❤️ Wishlist";
-                }
-
-                Button {
-                    text: "➕ Add Fragrance";
-                }
-
-                Button {
-                    text: "⚙ Settings";
-                }
-            }
-        }
-
+        sidebar{}
 
         // Main Content Area
         Rectangle {
-
+            horizontal-stretch: 1;
             background: #181818;
 
             VerticalBox {
