@@ -1,0 +1,28 @@
+import { VerticalBox, HorizontalBox } from "std-widgets.slint";
+import { FragranceCard } from "../components/fragrance_card.slint";
+
+export component CollectionPage inherits Rectangle {
+
+    background: #181818;
+
+    VerticalBox {
+        padding: 30px;
+        spacing: 20px;
+
+        Text {
+            text: "Collection";
+            font-size: 32px;
+            color: white;
+        }
+
+        HorizontalBox {
+            spacing: 20px;
+
+            FragranceCard {}
+
+            FragranceCard {}
+
+            FragranceCard {}
+        }
+    }
+}

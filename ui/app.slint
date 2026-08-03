@@ -1,5 +1,6 @@
 import { VerticalBox, HorizontalBox } from "std-widgets.slint";
 import { sidebar } from "./components/sidebar.slint";
+import { CollectionPage } from "./pages/collection.slint";
 
 export component MainWindow inherits Window {
 
@@ -16,25 +17,7 @@ export component MainWindow inherits Window {
         // Main Content Area
         Rectangle {
             horizontal-stretch: 1;
-            background: #181818;
-
-            VerticalBox {
-
-                padding: 30px;
-
-                Text {
-                    text: "Collection";
-                    font-size: 32px;
-                    color: white;
-                }
-
-                Text {
-                    text: "Your fragrance collection will appear here.";
-                    font-size: 18px;
-                    color: #aaaaaa;
-                }
-
-            }
+            CollectionPage {}
         }
     }
 }
