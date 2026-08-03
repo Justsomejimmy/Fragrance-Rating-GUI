@@ -1,7 +1,9 @@
 import { VerticalBox, HorizontalBox } from "std-widgets.slint";
 import { FragranceCard } from "../components/fragrance_card.slint";
+import { FragranceData } from "../types.slint";
 
 export component CollectionPage inherits Rectangle {
+    in property <[FragranceData]> fragrances;
 
     background: #181818;
 
@@ -18,28 +20,12 @@ export component CollectionPage inherits Rectangle {
         HorizontalBox {
             spacing: 20px;
 
-            FragranceCard {
-                brand: "Kayali";
-                name: "Vanilla Candy Rock Sugar";
-                rating: 9;
-                notes: "Sweet";
-                seasons: "Spring • Summer • Fall • Winter";
-            }
-
-            FragranceCard {
-                brand: "Phlur";
-                name: "Vanilla Skin";
-                rating: 6.5;
-                notes: "Vanilla • Woody • Musky";
-                seasons: "Fall • Winter";
-            }
-
-            FragranceCard {
-                brand: "Parfums de Marly";
-                name: "Layton";
-                rating: 9.7;
-                notes: "Apple • Vanilla • Cardamom";
-                seasons: "Fall • Winter";
+            for fragrance in fragrances : FragranceCard {
+                brand: fragrance.brand;
+                name: fragrance.name;
+                rating: fragrance.rating;
+                notes: fragrance.notes;
+                seasons: fragrance.seasons;
             }
         }
     }

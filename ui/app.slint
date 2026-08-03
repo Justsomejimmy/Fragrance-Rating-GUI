@@ -1,10 +1,13 @@
 import { VerticalBox, HorizontalBox } from "std-widgets.slint";
 import { sidebar } from "./components/sidebar.slint";
 import { CollectionPage } from "./pages/collection.slint";
+import { FragranceData } from "./types.slint";
 
 export component MainWindow inherits Window {
     width: 1200px;
     height: 800px;
+
+    in property <[FragranceData]> fragrances;
 
     title: "Fragrance Vault";
 
@@ -16,7 +19,9 @@ export component MainWindow inherits Window {
         // Main Content Area
         Rectangle {
             horizontal-stretch: 1;
-            CollectionPage {}
+            CollectionPage {
+                fragrances: root.fragrances;
+            }
         }
     }
 }
