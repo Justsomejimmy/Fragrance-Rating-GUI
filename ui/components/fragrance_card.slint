@@ -1,6 +1,12 @@
-import { VerticalBox, HorizontalBox } from "std-widgets.slint";
+import { VerticalBox } from "std-widgets.slint";
 
 export component FragranceCard inherits Rectangle {
+
+    in property <string> brand;
+    in property <string> name;
+    in property <float> rating;
+    in property <string> notes;
+    in property <string> seasons;
 
     width: 220px;
     height: 320px;
@@ -8,48 +14,44 @@ export component FragranceCard inherits Rectangle {
     background: #242424;
     border-radius: 12px;
 
-
     VerticalBox {
 
         padding: 15px;
         spacing: 10px;
 
-
         Rectangle {
 
             height: 150px;
-
             background: #333333;
 
             Text {
                 text: "Bottle";
                 color: #aaaaaa;
                 horizontal-alignment: center;
+                vertical-alignment: center;
             }
         }
 
-
         Text {
-            text: "Bleu de Chanel";
+            text: brand + " - " + name;
             color: white;
             font-size: 18px;
+            wrap: word-wrap;
         }
 
-
         Text {
-            text: "⭐ 9.2";
+            text: "⭐ " + rating;
             color: white;
         }
 
-
         Text {
-            text: "Grapefruit • Cedar • Incense";
+            text: notes;
             color: #aaaaaa;
+            wrap: word-wrap;
         }
 
-
         Text {
-            text: "☀ Summer  🍂 Fall";
+            text: seasons;
             color: #aaaaaa;
         }
     }
