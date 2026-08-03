@@ -1,0 +1,87 @@
+import { VerticalBox, HorizontalBox, Button } from "std-widgets.slint";
+
+export component MainWindow inherits Window {
+
+    width: 1200px;
+    height: 800px;
+
+    title: "Fragrance Vault";
+
+    background: #121212;
+
+    HorizontalBox {
+
+        // Sidebar
+        Rectangle {
+            width: 280px;
+            background: #1e1e1e;
+
+            VerticalBox {
+                padding: 20px;
+                spacing: 15px;
+
+                Text {
+                    text: "Fragrance Vault";
+                    font-size: 35px;
+                    color: white;
+                    wrap: word-wrap;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+
+                Rectangle {
+                    height: 20px;
+                }
+
+                Button {
+                    text: "🏠 Dashboard";
+                }
+
+                Button {
+                    text: "📚 Collection";
+                }
+
+                Button {
+                    text: "⭐ Rankings";
+                }
+
+                Button {
+                    text: "❤️ Wishlist";
+                }
+
+                Button {
+                    text: "➕ Add Fragrance";
+                }
+
+                Button {
+                    text: "⚙ Settings";
+                }
+            }
+        }
+
+
+        // Main Content Area
+        Rectangle {
+
+            background: #181818;
+
+            VerticalBox {
+
+                padding: 30px;
+
+                Text {
+                    text: "Collection";
+                    font-size: 32px;
+                    color: white;
+                }
+
+                Text {
+                    text: "Your fragrance collection will appear here.";
+                    font-size: 18px;
+                    color: #aaaaaa;
+                }
+
+            }
+        }
+    }
+}

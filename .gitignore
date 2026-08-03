@@ -1,0 +1,10 @@
+target/
+
+.vscode/
+.idea/
+
+.DS_Store
+Thumbs.db
+
+*.sqlite
+*.db*.rs.bk
