@@ -1,4 +1,4 @@
-import { VerticalBox, HorizontalBox } from "std-widgets.slint";
+import { VerticalBox, ScrollView, GridBox } from "std-widgets.slint";
 import { FragranceCard } from "../components/fragrance_card.slint";
 import { FragranceData } from "../types.slint";
 
@@ -8,6 +8,7 @@ export component CollectionPage inherits Rectangle {
     background: #181818;
 
     VerticalBox {
+
         padding: 30px;
         spacing: 20px;
 
@@ -17,15 +18,24 @@ export component CollectionPage inherits Rectangle {
             color: white;
         }
 
-        HorizontalBox {
-            spacing: 20px;
+        ScrollView {
 
-            for fragrance in fragrances : FragranceCard {
-                brand: fragrance.brand;
-                name: fragrance.name;
-                rating: fragrance.rating;
-                notes: fragrance.notes;
-                seasons: fragrance.seasons;
+            vertical-stretch: 1;
+
+            GridBox {
+
+                spacing: 20px;
+
+                for fragrance[index] in fragrances : FragranceCard {
+                    row: index / 3;
+                    col: Math.mod(index, 3);
+
+                    brand: fragrance.brand;
+                    name: fragrance.name;
+                    rating: fragrance.rating;
+                    notes: fragrance.notes;
+                    seasons: fragrance.seasons;
+                }
             }
         }
     }
