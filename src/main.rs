@@ -18,11 +18,20 @@ fn main() {
         .iter()
         .map(|f| {
             FragranceData {
+                id: f.id,
                 brand: f.brand.clone().into(),
                 name: f.name.clone().into(),
+                concentration: f.concentration.clone().into(),
+                projection: f.projection.clone().into(),
+                longevity: f.longevity.clone().into(),
+                price: f.price.clone().into(),
+                purchase_date: f.purchase_date.clone().into(),
                 rating: f.rating,
                 notes: f.notes.clone().into(),
                 seasons: f.seasons.clone().into(),
+                image_path: f.image_path.clone().into(),
+                my_notes: f.my_notes.clone().into(),
+                partner_notes: f.partner_notes.clone().into(),
             }
         }).collect::<Vec<_>>();
 

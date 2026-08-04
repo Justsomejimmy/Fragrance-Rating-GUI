@@ -4,13 +4,20 @@ pub fn create_tables(conn: &Connection) {
     conn.execute(
         "
         CREATE TABLE IF NOT EXISTS fragrances (
-            id INTEGER PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             brand TEXT NOT NULL,
             name TEXT NOT NULL,
-            concentration TEXT NOT NULL,
-            rating REAL NOT NULL,
+            concentration TEXT,
+            projection TEXT,
+            longevity TEXT,
+            price TEXT,
+            purchase_date TEXT,
+            rating REAL,
             notes TEXT,
-            seasons TEXT
+            seasons TEXT,
+            image_path TEXT,
+            my_notes TEXT,
+            partner_notes TEXT
         )
         ",
         [],
@@ -31,16 +38,22 @@ pub fn seed_database(conn: &Connection) {
 
     conn.execute(
         "
-        INSERT INTO fragrances
-        (brand, name, concentration, rating, notes, seasons)
+        INSERT INTO fragrances (brand, name, concentration, projection, longevity, price, purchase_date, rating, notes, seasons, image_path, my_notes, partner_notes)
         VALUES
         (
             'Chanel',
             'Bleu de Chanel',
             'EDP',
+            'Moderate',
+            'Long',
+            '$120',
+            '2025-08-01',
             9.2,
             'Grapefruit,Cedar,Incense',
-            'Summer,Fall'
+            'Summer,Fall',
+            '',
+            'Excellent evening fragrance.',
+            'Fresh and classy.'
         )
         ",
         [],
