@@ -32,6 +32,10 @@ export component MainWindow inherits Window {
 
             if root.current-page == Page.Details : FragranceDetails {
                 fragrance: root.selected-fragrance;
+
+                back_requested => {
+                    root.current-page = Page.Collection;
+                }
             }
         }
     }
