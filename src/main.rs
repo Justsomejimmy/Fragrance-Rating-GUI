@@ -14,10 +14,6 @@ fn main() {
 
     println!("{:#?}", fragrances);
 
-    let ui = MainWindow::new().unwrap();
-
-    let fragrances = database::fragrance_repository::get_all(&database);
-
     let ui_fragrances = fragrances
         .iter()
         .map(|f| {
@@ -30,12 +26,34 @@ fn main() {
             }
         }).collect::<Vec<_>>();
 
+    let rows = group_into_rows(&ui_fragrances, 3);
 
-    ui.set_fragrances(
+    let ui_rows = rows
+        .iter()
+        .map(|row| {
+
+            FragranceRow {
+                fragrances: ModelRc::new(
+                    VecModel::from(row.clone())
+                )
+            }
+
+        }).collect::<Vec<_>>();
+
+    let ui = MainWindow::new().unwrap();
+
+    ui.set_rows(
         ModelRc::new(
-            VecModel::from(ui_fragrances)
+            VecModel::from(ui_rows)
         )
     );
 
     ui.run().unwrap();
+}
+
+fn group_into_rows<T: Clone>(items: &[T], row_size: usize) -> Vec<Vec<T>> {
+    items
+        .chunks(row_size)
+        .map(|chunk| chunk.to_vec())
+        .collect()
 }
