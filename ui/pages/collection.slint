@@ -4,10 +4,10 @@ import { FragranceData, FragranceRow } from "../types.slint";
 
 export component CollectionPage inherits Rectangle {
     in property <[FragranceRow]> rows;
+    callback fragrance_clicked(FragranceData);
     background: #181818;
 
     VerticalBox {
-
         padding: 30px;
         spacing: 20px;
 
@@ -32,6 +32,10 @@ export component CollectionPage inherits Rectangle {
                         rating: fragrance.rating;
                         notes: fragrance.notes;
                         seasons: fragrance.seasons;
+
+                        card_clicked => {
+                            root.fragrance_clicked(fragrance);
+                        }
                     }
                 }
             }

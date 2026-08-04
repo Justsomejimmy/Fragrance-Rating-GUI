@@ -1,14 +1,17 @@
 import { VerticalBox, HorizontalBox } from "std-widgets.slint";
 import { sidebar } from "./components/sidebar.slint";
 import { CollectionPage } from "./pages/collection.slint";
-import { FragranceRow } from "./types.slint";
+import { FragranceDetails } from "./pages/fragrance_details.slint";
+import { Page, FragranceRow, FragranceData } from "./types.slint";
 
 export component MainWindow inherits Window {
     width: 1200px;
     height: 800px;
 
+    in-out property <Page> current-page: Page.Collection;
     in property <[FragranceRow]> rows;
-
+    property <FragranceData> selected-fragrance;
+    
     title: "Fragrance Vault";
 
     background: #121212;
@@ -19,8 +22,16 @@ export component MainWindow inherits Window {
         // Main Content Area
         Rectangle {
             horizontal-stretch: 1;
-            CollectionPage {
+            if root.current-page == Page.Collection : CollectionPage {
                 rows: root.rows;
+                fragrance_clicked(fragrance) => {
+                    root.selected-fragrance = fragrance;
+                    root.current-page = Page.Details;
+                }
+            }
+
+            if root.current-page == Page.Details : FragranceDetails {
+                fragrance: root.selected-fragrance;
             }
         }
     }

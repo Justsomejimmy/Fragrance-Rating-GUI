@@ -1,18 +1,25 @@
 import { VerticalBox } from "std-widgets.slint";
 
 export component FragranceCard inherits Rectangle {
-
     in property <string> brand;
     in property <string> name;
     in property <float> rating;
     in property <string> notes;
     in property <string> seasons;
 
+    callback card_clicked();
+
     width: 220px;
     height: 320px;
 
     background: #242424;
     border-radius: 12px;
+    
+    TouchArea {
+        clicked => {
+            root.card_clicked();
+        }
+    }
 
     VerticalBox {
 

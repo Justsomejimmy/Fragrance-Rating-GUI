@@ -1,0 +1,44 @@
+import { VerticalBox } from "std-widgets.slint";
+import { FragranceData } from "../types.slint";
+
+
+export component FragranceDetails inherits Rectangle {
+
+    in property <FragranceData> fragrance;
+
+
+    background: #181818;
+
+
+    VerticalBox {
+
+        padding: 30px;
+        spacing: 15px;
+
+
+        Text {
+            text: fragrance.brand + " " + fragrance.name;
+            font-size: 32px;
+            color: white;
+        }
+
+
+        Text {
+            text: "Rating: ⭐ " + fragrance.rating;
+            color: white;
+        }
+
+
+        Text {
+            text: "Notes: " + fragrance.notes;
+            color: #aaaaaa;
+        }
+
+
+        Text {
+            text: "Seasons: " + fragrance.seasons;
+            color: #aaaaaa;
+        }
+
+    }
+}
