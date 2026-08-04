@@ -52,3 +52,43 @@ pub fn get_all(
 
     fragrances.map(|f| f.unwrap()).collect()
 }
+
+pub fn update(
+    conn: &Connection,
+    fragrance: &Fragrance
+) {
+    conn.execute(
+        "
+        UPDATE fragrances
+        SET
+            brand = ?,
+            name = ?,
+            concentration = ?,
+            projection = ?,
+            longevity = ?,
+            price = ?,
+            purchase_date = ?,
+            rating = ?,
+            notes = ?,
+            seasons = ?,
+            my_notes = ?,
+            partner_notes = ?
+        WHERE id = ?
+        ",
+        (
+            &fragrance.brand,
+            &fragrance.name,
+            &fragrance.concentration,
+            &fragrance.projection,
+            &fragrance.longevity,
+            &fragrance.price,
+            &fragrance.purchase_date,
+            fragrance.rating,
+            &fragrance.notes,
+            &fragrance.seasons,
+            &fragrance.my_notes,
+            &fragrance.partner_notes,
+            fragrance.id,
+        ),
+    ).unwrap();
+}

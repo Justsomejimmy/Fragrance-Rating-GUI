@@ -1,0 +1,185 @@
+import { VerticalBox, HorizontalBox, Button, LineEdit } from "std-widgets.slint";
+import { FragranceData } from "../types.slint";
+
+
+export component EditFragrance inherits Rectangle {
+    in property <FragranceData> fragrance;
+
+    property <string> brand;
+    property <string> name;
+    property <float> rating;
+    property <string> concentration;
+    property <string> projection;
+    property <string> longevity;
+    property <string> price;
+    property <string> purchase_date;
+    property <string> notes;
+    property <string> seasons;
+    property <string> my_notes;
+    property <string> partner_notes;
+
+    init => {
+        root.brand = fragrance.brand;
+        root.name = fragrance.name;
+        root.rating = fragrance.rating;
+        root.concentration = fragrance.concentration;
+        root.projection = fragrance.projection;
+        root.longevity = fragrance.longevity;
+        root.price = fragrance.price;
+        root.purchase_date = fragrance.purchase_date;
+        root.notes = fragrance.notes;
+        root.seasons = fragrance.seasons;
+        root.my_notes = fragrance.my_notes;
+        root.partner_notes = fragrance.partner_notes;
+    }
+
+    callback save_requested(
+        string,
+        string,
+        float,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string
+    );
+    callback cancel_requested();
+
+    background: #181818;
+
+    VerticalBox {
+        padding: 30px;
+        spacing: 15px;
+
+        Text {
+            text: "Edit Fragrances";
+            font-size: 32px;
+            color: white;
+        }
+
+        LineEdit {
+            text: root.brand;
+
+            edited => {
+                root.brand = self.text;
+            }
+        }
+
+        LineEdit {
+            text: root.name;
+
+            edited => {
+                root.name = self.text;
+            }
+        }
+
+        LineEdit {
+            text: root.rating;
+
+            edited => {
+                root.rating = self.text.to-float();
+            }
+        }
+
+        LineEdit {
+            text: root.concentration;
+
+            edited => {
+                root.concentration = self.text;
+            }
+        }
+
+        LineEdit {
+            text: root.projection;
+
+            edited => {
+                root.projection = self.text;
+            }
+        }
+
+        LineEdit {
+            text: root.longevity;
+
+            edited => {
+                root.longevity = self.text;
+            }
+        }
+
+        LineEdit {
+            text: root.price;
+
+            edited => {
+                root.price = self.text;
+            }
+        }
+
+        LineEdit {
+            text: root.purchase_date;
+
+            edited => {
+                root.purchase_date = self.text;
+            }
+        }
+
+        LineEdit {
+            text: root.notes;
+
+            edited => {
+                root.notes = self.text;
+            }
+        }
+
+        LineEdit {
+            text: root.my_notes;
+
+            edited => {
+                root.my_notes = self.text;
+            }
+        }
+
+        LineEdit {
+            text: root.partner_notes;
+
+            edited => {
+                root.partner_notes = self.text;
+            }
+        }
+
+        HorizontalBox {
+            spacing: 20px;
+
+            Button {
+                text: "Save";
+
+                clicked => {
+                    root.save_requested(
+                        root.brand,
+                        root.name,
+                        root.rating,
+                        root.concentration,
+                        root.projection,
+                        root.longevity,
+                        root.price,
+                        root.purchase_date,
+                        root.notes,
+                        root.seasons,
+                        root.my_notes,
+                        root.partner_notes
+                    );
+                }
+            }
+
+            Button {
+                text: "Cancel";
+
+                clicked => {
+                    root.cancel_requested();
+                }
+            }
+        }
+    }
+}

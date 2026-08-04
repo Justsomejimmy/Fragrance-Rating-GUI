@@ -1,4 +1,4 @@
-import { VerticalBox, Button } from "std-widgets.slint";
+import { VerticalBox, HorizontalBox, Button } from "std-widgets.slint";
 import { FragranceData } from "../types.slint";
 
 
@@ -6,6 +6,8 @@ export component FragranceDetails inherits Rectangle {
     in property <FragranceData> fragrance;
 
     callback back_requested();
+    callback edit_requested();
+    callback delete_requested();
 
     background: #181818;
 
@@ -70,6 +72,26 @@ export component FragranceDetails inherits Rectangle {
         Text {
             text: "Partner Notes: " + fragrance.partner_notes;
             color: white;
+        }
+
+        HorizontalBox {
+            spacing: 20px;
+
+            Button {
+                text: "Edit";
+
+                clicked => {
+                    root.edit_requested();
+                }
+            }
+
+            Button {
+                text: "Delete";
+
+                clicked => {
+                    root.delete_requested();
+                }
+            }
         }
     }
 }

@@ -57,6 +57,25 @@ fn main() {
         )
     );
 
+    let database = database;
+    ui.on_save_requested(
+        move |
+            brand,
+            name,
+            rating,
+            concentration,
+            projection,
+            longevity,
+            price,
+            purchase_date,
+            notes,
+            seasons,
+            my_notes,
+            partner_notes
+        | {
+            println!("{}", name);
+        }
+    );
     ui.run().unwrap();
 }
 
