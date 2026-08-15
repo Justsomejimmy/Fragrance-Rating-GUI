@@ -4,6 +4,7 @@ import { CollectionPage } from "./pages/collection.slint";
 import { FragranceDetails } from "./pages/fragrance_details.slint";
 import { EditFragrance } from "./pages/edit_fragrance.slint";
 import { Page, FragranceRow, FragranceData } from "./types.slint";
+import { AddFragrance } from "./pages/add_fragrance.slint";
 
 export component MainWindow inherits Window {
     callback save_requested(
@@ -12,6 +13,19 @@ export component MainWindow inherits Window {
         string,
         float,
         string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string
+    );
+    callback add_fragrance(
+        string,
+        string,
+        float,
         string,
         string,
         string,
@@ -36,7 +50,11 @@ export component MainWindow inherits Window {
     background: #121212;
 
     HorizontalBox {
-        sidebar{}
+        sidebar {
+            add_requested => {
+                root.current-page = Page.Add;
+            }
+        }
 
         // Main Content Area
         Rectangle {
@@ -121,6 +139,42 @@ export component MainWindow inherits Window {
                     );
 
                     root.current-page = Page.Details;
+                }
+            }
+
+            if root.current-page == Page.Add : AddFragrance {
+                add_requested(
+                    brand,
+                    name,
+                    rating,
+                    concentration,
+                    projection,
+                    longevity,
+                    price,
+                    purchase_date,
+                    notes,
+                    seasons,
+                    my_notes
+                ) => {
+                    root.add_fragrance(
+                        brand,
+                        name,
+                        rating,
+                        concentration,
+                        projection,
+                        longevity,
+                        price,
+                        purchase_date,
+                        notes,
+                        seasons,
+                        my_notes
+                    );
+
+                    root.current-page = Page.Collection;
+                }
+
+                cancel_requested => {
+                    root.current-page = Page.Collection;
                 }
             }
         }

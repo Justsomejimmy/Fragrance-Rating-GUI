@@ -23,8 +23,8 @@ fn main() {
     // Share the database connection between callbacks
     let database = Rc::new(database);
 
-    let delete_database = Rc::clone(&database);
     let weak_ui = ui.as_weak();
+    let save_database = Rc::clone(&database);
 
     ui.on_save_requested(
         move |
@@ -43,7 +43,7 @@ fn main() {
             partner_notes
         | {
             database::fragrance_repository::update(
-                &database,
+                &save_database,
                 id as i64,
                 &brand,
                 &name,
@@ -62,6 +62,54 @@ fn main() {
             println!("Updated fragrance: {}", name);
         }
     );
+
+    let add_database = Rc::clone(&database);
+    let add_ui = ui.as_weak();
+
+    ui.on_add_fragrance(
+        move |
+            brand,
+            name,
+            rating,
+            concentration,
+            projection,
+            longevity,
+            price,
+            purchase_date,
+            notes,
+            seasons,
+            my_notes
+        | {
+            database::fragrance_repository::insert(
+                &add_database,
+                &brand,
+                &name,
+                rating as f64,
+                &concentration,
+                &projection,
+                &longevity,
+                &price,
+                &purchase_date,
+                &notes,
+                &seasons,
+                &my_notes,
+            );
+
+            if let Some(ui) = add_ui.upgrade() {
+                let rows = load_rows(&add_database);
+
+                ui.set_rows(
+                    ModelRc::new(
+                        VecModel::from(rows)
+                    )
+                );
+            }
+
+            println!("Added fragrance: {}", name);
+        }
+    );
+
+    let delete_database = Rc::clone(&database);
 
     ui.on_delete_requested(
         move |id| {

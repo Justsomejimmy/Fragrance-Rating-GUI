@@ -113,3 +113,53 @@ pub fn delete(conn: &Connection, id: i32) {
     )
     .unwrap();
 }
+
+pub fn insert(
+    conn: &rusqlite::Connection,
+    brand: &str,
+    name: &str,
+    rating: f64,
+    concentration: &str,
+    projection: &str,
+    longevity: &str,
+    price: &str,
+    purchase_date: &str,
+    notes: &str,
+    seasons: &str,
+    my_notes: &str,
+) {
+    conn.execute(
+        "
+        INSERT INTO fragrances (
+            brand,
+            name,
+            concentration,
+            projection,
+            longevity,
+            price,
+            purchase_date,
+            rating,
+            notes,
+            seasons,
+            image_path,
+            my_notes,
+            partner_notes
+        )
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, '', ?11, '')
+        ",
+        rusqlite::params![
+            brand,
+            name,
+            concentration,
+            projection,
+            longevity,
+            price,
+            purchase_date,
+            rating,
+            notes,
+            seasons,
+            my_notes,
+        ],
+    )
+    .unwrap();
+}

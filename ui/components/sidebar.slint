@@ -1,6 +1,8 @@
 import { VerticalBox, HorizontalBox, Button } from "std-widgets.slint";
 
 export component sidebar inherits Rectangle{
+    callback add_requested();
+    
     width: 280px;
     background: #1e1e1e;
 
@@ -39,6 +41,9 @@ export component sidebar inherits Rectangle{
 
         Button {
             text: "➕ Add Fragrance";
+            clicked => {
+                root.add_requested();
+            }
         }
 
         Button {
