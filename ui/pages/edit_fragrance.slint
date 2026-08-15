@@ -34,6 +34,7 @@ export component EditFragrance inherits Rectangle {
     }
 
     callback save_requested(
+        int,
         string,
         string,
         float,
@@ -134,6 +135,14 @@ export component EditFragrance inherits Rectangle {
         }
 
         LineEdit {
+            text: root.seasons;
+
+            edited => {
+                root.seasons = self.text;
+            }
+        }
+
+        LineEdit {
             text: root.my_notes;
 
             edited => {
@@ -157,6 +166,7 @@ export component EditFragrance inherits Rectangle {
 
                 clicked => {
                     root.save_requested(
+                        root.fragrance.id,
                         root.brand,
                         root.name,
                         root.rating,
@@ -168,7 +178,7 @@ export component EditFragrance inherits Rectangle {
                         root.notes,
                         root.seasons,
                         root.my_notes,
-                        root.partner_notes
+                        root.partner_notes 
                     );
                 }
             }

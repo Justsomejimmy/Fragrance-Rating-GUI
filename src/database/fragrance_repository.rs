@@ -55,40 +55,53 @@ pub fn get_all(
 
 pub fn update(
     conn: &Connection,
-    fragrance: &Fragrance
+    id: i64,
+    brand: &str,
+    name: &str,
+    rating: f64,
+    concentration: &str,
+    projection: &str,
+    longevity: &str,
+    price: &str,
+    purchase_date: &str,
+    notes: &str,
+    seasons: &str,
+    my_notes: &str,
+    partner_notes: &str,
 ) {
     conn.execute(
         "
         UPDATE fragrances
         SET
-            brand = ?,
-            name = ?,
-            concentration = ?,
-            projection = ?,
-            longevity = ?,
-            price = ?,
-            purchase_date = ?,
-            rating = ?,
-            notes = ?,
-            seasons = ?,
-            my_notes = ?,
-            partner_notes = ?
-        WHERE id = ?
+            brand = ?1,
+            name = ?2,
+            rating = ?3,
+            concentration = ?4,
+            projection = ?5,
+            longevity = ?6,
+            price = ?7,
+            purchase_date = ?8,
+            notes = ?9,
+            seasons = ?10,
+            my_notes = ?11,
+            partner_notes = ?12
+        WHERE id = ?13
         ",
         (
-            &fragrance.brand,
-            &fragrance.name,
-            &fragrance.concentration,
-            &fragrance.projection,
-            &fragrance.longevity,
-            &fragrance.price,
-            &fragrance.purchase_date,
-            fragrance.rating,
-            &fragrance.notes,
-            &fragrance.seasons,
-            &fragrance.my_notes,
-            &fragrance.partner_notes,
-            fragrance.id,
+            brand,
+            name,
+            rating,
+            concentration,
+            projection,
+            longevity,
+            price,
+            purchase_date,
+            notes,
+            seasons,
+            my_notes,
+            partner_notes,
+            id,
         ),
-    ).unwrap();
+    )
+    .unwrap();
 }

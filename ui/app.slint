@@ -7,6 +7,7 @@ import { Page, FragranceRow, FragranceData } from "./types.slint";
 
 export component MainWindow inherits Window {
     callback save_requested(
+        int,
         string,
         string,
         float,
@@ -68,6 +69,7 @@ export component MainWindow inherits Window {
                 }
 
                 save_requested(
+                    id,
                     brand,
                     name,
                     rating,
@@ -82,7 +84,7 @@ export component MainWindow inherits Window {
                     partner_notes
                 ) => {
                     root.selected-fragrance = {
-                        id: root.selected-fragrance.id,
+                        id: id,
                         brand: brand,
                         name: name,
                         concentration: concentration,
@@ -99,6 +101,7 @@ export component MainWindow inherits Window {
                     };
 
                     root.save_requested(
+                        id,
                         brand,
                         name,
                         rating,

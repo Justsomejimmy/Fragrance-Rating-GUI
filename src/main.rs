@@ -60,6 +60,7 @@ fn main() {
     let database = database;
     ui.on_save_requested(
         move |
+            id,
             brand,
             name,
             rating,
@@ -73,9 +74,27 @@ fn main() {
             my_notes,
             partner_notes
         | {
-            println!("{}", name);
+            database::fragrance_repository::update(
+                &database,
+                id as i64,
+                &brand,
+                &name,
+                rating as f64,
+                &concentration,
+                &projection,
+                &longevity,
+                &price,
+                &purchase_date,
+                &notes,
+                &seasons,
+                &my_notes,
+                &partner_notes,
+            );
+
+            println!("Updated fragrance: {}", name);
         }
     );
+
     ui.run().unwrap();
 }
 
