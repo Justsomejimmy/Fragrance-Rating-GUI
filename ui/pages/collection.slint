@@ -1,4 +1,4 @@
-import { VerticalBox, HorizontalBox, ScrollView, ComboBox, LineEdit } from "std-widgets.slint";
+import { VerticalBox, HorizontalBox, ScrollView, ComboBox, LineEdit, Button } from "std-widgets.slint";
 import { FragranceCard } from "../components/fragrance_card.slint";
 import { FragranceData, FragranceRow } from "../types.slint";
 
@@ -9,9 +9,8 @@ export component CollectionPage inherits Rectangle {
     in property <[FragranceRow]> rows;
 
     callback fragrance_clicked(FragranceData);
-    callback sort_changed(string);
-    callback search_changed(string);
-
+    callback search_requested(string);
+    callback sort_requested(string);
     background: #181818;
 
     VerticalBox {
@@ -23,23 +22,33 @@ export component CollectionPage inherits Rectangle {
 
             Text {
                 text: "Collection";
-                font-size: 32px;
+                font-size: 40px;
                 color: white;
                 vertical-alignment: center;
             }
 
             LineEdit {
-                width: 250px;
+                width: 220px;
                 placeholder-text: "Search fragrances...";
                 text <=> root.search-text;
 
                 edited => {
-                    root.search_changed(root.search-text);
+                    root.search_requested(self.text);
+                }
+            }
+
+            Button {
+                width: 70px;
+                text: "Clear";
+
+                clicked => {
+                    root.search-text = "";
+                    root.search_requested("");
                 }
             }
 
             ComboBox {
-                width: 180px;
+                width: 160px;
 
                 model: [
                     "Rating: High → Low",
@@ -50,8 +59,8 @@ export component CollectionPage inherits Rectangle {
 
                 current-value <=> root.sort-option;
 
-                selected(value) => {
-                    root.sort_changed(value);
+                selected => {
+                    root.sort_requested(root.sort-option);
                 }
             }
         }

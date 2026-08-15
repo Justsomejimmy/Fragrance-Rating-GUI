@@ -64,19 +64,17 @@ export component MainWindow inherits Window {
             horizontal-stretch: 1;
             if root.current-page == Page.Collection : CollectionPage {
                 rows: root.rows;
-                sort-option: root.current-sort;
 
                 fragrance_clicked(fragrance) => {
                     root.selected-fragrance = fragrance;
                     root.current-page = Page.Details;
                 }
 
-                sort_changed(option) => {
-                    root.current-sort = option;
+                sort_requested(option) => {
                     root.refresh_collection(option);
                 }
 
-                search_changed(text) => {
+                search_requested(text) => {
                     root.search_collection(text);
                 }
             }
