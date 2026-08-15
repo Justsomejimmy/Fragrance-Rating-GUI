@@ -21,6 +21,9 @@ export component MainWindow inherits Window {
         string,
         string
     );
+    callback delete_requested(int);
+    callback refresh_collection();
+
     width: 1200px;
     height: 800px;
 
@@ -54,7 +57,8 @@ export component MainWindow inherits Window {
                 }
 
                 delete_requested => {
-                    // next step: confirmation dialog
+                    root.delete_requested(root.selected-fragrance.id);
+                    root.current-page = Page.Collection;
                 }
 
                 back_requested => {

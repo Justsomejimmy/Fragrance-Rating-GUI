@@ -105,3 +105,11 @@ pub fn update(
     )
     .unwrap();
 }
+
+pub fn delete(conn: &Connection, id: i32) {
+    conn.execute(
+        "DELETE FROM fragrances WHERE id = ?1",
+        [id],
+    )
+    .unwrap();
+}

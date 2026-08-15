@@ -4,6 +4,7 @@ import { FragranceData } from "../types.slint";
 
 export component FragranceDetails inherits Rectangle {
     in property <FragranceData> fragrance;
+    property <bool> show-delete-confirmation: false;
 
     callback back_requested();
     callback edit_requested();
@@ -94,7 +95,64 @@ export component FragranceDetails inherits Rectangle {
                 text: "Delete";
 
                 clicked => {
-                    root.delete_requested();
+                    root.show-delete-confirmation = true;
+                }
+            }
+        }
+    }
+
+    if root.show-delete-confirmation : Rectangle {
+        width: parent.width;
+        height: parent.height;
+
+        background: #000000aa;
+
+        Rectangle {
+            width: 400px;
+            height: 200px;
+
+            x: (parent.width - self.width) / 2;
+            y: (parent.height - self.height) / 2;
+
+            background: #252525;
+            border-radius: 12px;
+
+            VerticalBox {
+                padding: 25px;
+                spacing: 20px;
+
+                Text {
+                    text: "Delete this fragrance?";
+                    color: white;
+                    font-size: 22px;
+                    horizontal-alignment: center;
+                }
+
+                Text {
+                    text: "This action cannot be undone.";
+                    color: #aaaaaa;
+                    horizontal-alignment: center;
+                }
+
+                HorizontalBox {
+                    spacing: 15px;
+
+                    Button {
+                        text: "Cancel";
+
+                        clicked => {
+                            root.show-delete-confirmation = false;
+                        }
+                    }
+
+                    Button {
+                        text: "Delete";
+
+                        clicked => {
+                            root.show-delete-confirmation = false;
+                            root.delete_requested();
+                        }
+                    }
                 }
             }
         }
