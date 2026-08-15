@@ -1,20 +1,47 @@
-import { VerticalBox, HorizontalBox, ScrollView } from "std-widgets.slint";
+import { VerticalBox, HorizontalBox, ScrollView, ComboBox } from "std-widgets.slint";
 import { FragranceCard } from "../components/fragrance_card.slint";
 import { FragranceData, FragranceRow } from "../types.slint";
 
 export component CollectionPage inherits Rectangle {
+    in-out property <string> sort-option: "Rating: High → Low";
+    
     in property <[FragranceRow]> rows;
+
     callback fragrance_clicked(FragranceData);
+    callback sort_changed(string);
+
     background: #181818;
 
     VerticalBox {
         padding: 30px;
         spacing: 20px;
 
-        Text {
-            text: "Collection";
-            font-size: 32px;
-            color: white;
+        HorizontalBox {
+            spacing: 20px;
+
+            Text {
+                text: "Collection";
+                font-size: 32px;
+                color: white;
+                vertical-alignment: center;
+            }
+
+            ComboBox {
+                width: 180px;
+
+                model: [
+                    "Rating: High → Low",
+                    "Rating: Low → High",
+                    "Name: A → Z",
+                    "Name: Z → A"
+                ];
+
+                current-value <=> root.sort-option;
+
+                selected(value) => {
+                    root.sort_changed(value);
+                }
+            }
         }
 
         ScrollView {

@@ -11,8 +11,38 @@ fn main() {
     database::schema::seed_database(&database);
 
     let ui = MainWindow::new().unwrap();
+    let database = Rc::new(database);
 
-    let ui_rows = load_rows(&database);
+    let current_sort = Rc::new(
+        std::cell::RefCell::new(
+            "Rating: High → Low".to_string()
+        )
+    );
+
+    let sort_database = Rc::clone(&database);
+    let sort_state = Rc::clone(&current_sort);
+    let sort_ui = ui.as_weak();
+
+    ui.on_refresh_collection(
+        move |sort_option| {
+            *sort_state.borrow_mut() = sort_option.to_string();
+
+            if let Some(ui) = sort_ui.upgrade() {
+                let rows = load_rows(
+                    &sort_database,
+                    &sort_option
+                );
+
+                ui.set_rows(
+                    ModelRc::new(
+                        VecModel::from(rows)
+                    )
+                );
+            }
+        }
+    );
+
+    let ui_rows = load_rows(&database, "Rating: High → Low");
 
     ui.set_rows(
         ModelRc::new(
@@ -25,6 +55,7 @@ fn main() {
 
     let save_ui = ui.as_weak();
     let save_database = Rc::clone(&database);
+    let save_sort = Rc::clone(&current_sort);
 
     ui.on_save_requested(
         move |
@@ -61,7 +92,12 @@ fn main() {
 
             // Refresh the collection from SQLite
             if let Some(ui) = save_ui.upgrade() {
-                let rows = load_rows(&save_database);
+                let sort_option = save_sort.borrow().clone();
+
+                let rows = load_rows(
+                    &save_database,
+                    &sort_option
+                );
 
                 ui.set_rows(
                     ModelRc::new(
@@ -75,6 +111,7 @@ fn main() {
     );
 
     let add_database = Rc::clone(&database);
+    let add_sort = Rc::clone(&current_sort);
     let add_ui = ui.as_weak();
 
     ui.on_add_fragrance(
@@ -107,9 +144,14 @@ fn main() {
                 &my_notes,
                 &partner_notes,
             );
+            
+            let sort_option = add_sort.borrow().clone();
 
             if let Some(ui) = add_ui.upgrade() {
-                let rows = load_rows(&add_database);
+                let rows = load_rows(
+                    &add_database,
+                    &sort_option
+                );
 
                 ui.set_rows(
                     ModelRc::new(
@@ -124,6 +166,7 @@ fn main() {
 
     let delete_ui = ui.as_weak();
     let delete_database = Rc::clone(&database);
+    let delete_sort = Rc::clone(&current_sort);
 
     ui.on_delete_requested(
         move |id| {
@@ -132,8 +175,13 @@ fn main() {
                 id
             );
 
+            let sort_option = delete_sort.borrow().clone();
+
             if let Some(ui) = delete_ui.upgrade() {
-                let rows = load_rows(&delete_database);
+                let rows = load_rows(
+                    &delete_database,
+                    &sort_option
+                );
 
                 ui.set_rows(
                     ModelRc::new(
@@ -156,8 +204,41 @@ fn group_into_rows<T: Clone>(items: &[T], row_size: usize) -> Vec<Vec<T>> {
         .collect()
 }
 
-fn load_rows(database: &rusqlite::Connection) -> Vec<FragranceRow> {
+fn load_rows(database: &rusqlite::Connection, sort_option: &str,) -> Vec<FragranceRow> {
     let fragrances = database::fragrance_repository::get_all(database);
+    let mut fragrances = fragrances;
+
+    match sort_option {
+        "Rating: High → Low" => {
+            fragrances.sort_by(|a, b| {
+                b.rating
+                    .partial_cmp(&a.rating)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            });
+        }
+
+        "Rating: Low → High" => {
+            fragrances.sort_by(|a, b| {
+                a.rating
+                    .partial_cmp(&b.rating)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            });
+        }
+
+        "Name: A → Z" => {
+            fragrances.sort_by(|a, b| {
+                a.name.to_lowercase().cmp(&b.name.to_lowercase())
+            });
+        }
+
+        "Name: Z → A" => {
+            fragrances.sort_by(|a, b| {
+                b.name.to_lowercase().cmp(&a.name.to_lowercase())
+            });
+        }
+
+        _ => {}
+    }
 
     let ui_fragrances = fragrances
         .iter()
