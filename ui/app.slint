@@ -25,7 +25,8 @@ export component MainWindow inherits Window {
     callback add_fragrance(
         string,
         string,
-        float,
+        string,
+        string,
         string,
         string,
         string,
@@ -154,7 +155,8 @@ export component MainWindow inherits Window {
                     purchase_date,
                     notes,
                     seasons,
-                    my_notes
+                    my_notes,
+                    partner_notes
                 ) => {
                     root.add_fragrance(
                         brand,
@@ -167,7 +169,8 @@ export component MainWindow inherits Window {
                         purchase_date,
                         notes,
                         seasons,
-                        my_notes
+                        my_notes,
+                        partner_notes
                     );
 
                     root.current-page = Page.Collection;

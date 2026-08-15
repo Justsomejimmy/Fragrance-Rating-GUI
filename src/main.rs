@@ -23,7 +23,7 @@ fn main() {
     // Share the database connection between callbacks
     let database = Rc::new(database);
 
-    let weak_ui = ui.as_weak();
+    let save_ui = ui.as_weak();
     let save_database = Rc::clone(&database);
 
     ui.on_save_requested(
@@ -59,6 +59,17 @@ fn main() {
                 &partner_notes,
             );
 
+            // Refresh the collection from SQLite
+            if let Some(ui) = save_ui.upgrade() {
+                let rows = load_rows(&save_database);
+
+                ui.set_rows(
+                    ModelRc::new(
+                        VecModel::from(rows)
+                    )
+                );
+            }
+
             println!("Updated fragrance: {}", name);
         }
     );
@@ -78,13 +89,14 @@ fn main() {
             purchase_date,
             notes,
             seasons,
-            my_notes
+            my_notes,
+            partner_notes
         | {
             database::fragrance_repository::insert(
                 &add_database,
                 &brand,
                 &name,
-                rating as f64,
+                rating.parse::<f64>().unwrap_or(0.0),
                 &concentration,
                 &projection,
                 &longevity,
@@ -93,6 +105,7 @@ fn main() {
                 &notes,
                 &seasons,
                 &my_notes,
+                &partner_notes,
             );
 
             if let Some(ui) = add_ui.upgrade() {
@@ -109,6 +122,7 @@ fn main() {
         }
     );
 
+    let delete_ui = ui.as_weak();
     let delete_database = Rc::clone(&database);
 
     ui.on_delete_requested(
@@ -118,7 +132,7 @@ fn main() {
                 id
             );
 
-            if let Some(ui) = weak_ui.upgrade() {
+            if let Some(ui) = delete_ui.upgrade() {
                 let rows = load_rows(&delete_database);
 
                 ui.set_rows(

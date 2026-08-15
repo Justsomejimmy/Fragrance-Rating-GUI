@@ -127,6 +127,7 @@ pub fn insert(
     notes: &str,
     seasons: &str,
     my_notes: &str,
+    partner_notes: &str,
 ) {
     conn.execute(
         "
@@ -145,7 +146,7 @@ pub fn insert(
             my_notes,
             partner_notes
         )
-        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, '', ?11, '')
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, '', ?11, ?12)
         ",
         rusqlite::params![
             brand,
@@ -159,6 +160,7 @@ pub fn insert(
             notes,
             seasons,
             my_notes,
+            partner_notes
         ],
     )
     .unwrap();
