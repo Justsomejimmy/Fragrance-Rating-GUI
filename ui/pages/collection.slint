@@ -1,14 +1,16 @@
-import { VerticalBox, HorizontalBox, ScrollView, ComboBox } from "std-widgets.slint";
+import { VerticalBox, HorizontalBox, ScrollView, ComboBox, LineEdit } from "std-widgets.slint";
 import { FragranceCard } from "../components/fragrance_card.slint";
 import { FragranceData, FragranceRow } from "../types.slint";
 
 export component CollectionPage inherits Rectangle {
     in-out property <string> sort-option: "Rating: High → Low";
-    
+    in-out property <string> search-text: "";
+
     in property <[FragranceRow]> rows;
 
     callback fragrance_clicked(FragranceData);
     callback sort_changed(string);
+    callback search_changed(string);
 
     background: #181818;
 
@@ -24,6 +26,16 @@ export component CollectionPage inherits Rectangle {
                 font-size: 32px;
                 color: white;
                 vertical-alignment: center;
+            }
+
+            LineEdit {
+                width: 250px;
+                placeholder-text: "Search fragrances...";
+                text <=> root.search-text;
+
+                edited => {
+                    root.search_changed(root.search-text);
+                }
             }
 
             ComboBox {

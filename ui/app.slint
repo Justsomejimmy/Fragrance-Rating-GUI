@@ -38,6 +38,7 @@ export component MainWindow inherits Window {
     );
     callback delete_requested(int);
     callback refresh_collection(string);
+    callback search_collection(string);
 
     width: 1200px;
     height: 800px;
@@ -73,6 +74,10 @@ export component MainWindow inherits Window {
                 sort_changed(option) => {
                     root.current-sort = option;
                     root.refresh_collection(option);
+                }
+
+                search_changed(text) => {
+                    root.search_collection(text);
                 }
             }
 

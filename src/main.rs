@@ -19,18 +19,28 @@ fn main() {
         )
     );
 
+    let current_search = Rc::new(
+        std::cell::RefCell::new(
+            String::new()
+        )
+    );
+
     let sort_database = Rc::clone(&database);
     let sort_state = Rc::clone(&current_sort);
+    let search_state = Rc::clone(&current_search);
     let sort_ui = ui.as_weak();
 
     ui.on_refresh_collection(
         move |sort_option| {
             *sort_state.borrow_mut() = sort_option.to_string();
 
+            let search_text = search_state.borrow().clone();
+
             if let Some(ui) = sort_ui.upgrade() {
                 let rows = load_rows(
                     &sort_database,
-                    &sort_option
+                    &sort_option,
+                    &search_text
                 );
 
                 ui.set_rows(
@@ -42,7 +52,34 @@ fn main() {
         }
     );
 
-    let ui_rows = load_rows(&database, "Rating: High → Low");
+    let search_database = Rc::clone(&database);
+    let search_sort = Rc::clone(&current_sort);
+    let search_state = Rc::clone(&current_search);
+    let search_ui = ui.as_weak();
+
+    ui.on_search_collection(
+        move |search_text| {
+            *search_state.borrow_mut() = search_text.to_string();
+
+            let sort_option = search_sort.borrow().clone();
+            
+            if let Some(ui) = search_ui.upgrade() {
+                let rows = load_rows(
+                    &search_database,
+                    &sort_option,
+                    &search_text
+                );
+
+                ui.set_rows(
+                    ModelRc::new(
+                        VecModel::from(rows)
+                    )
+                );
+            }
+        }
+    );
+
+    let ui_rows = load_rows(&database, "Rating: High → Low","");
 
     ui.set_rows(
         ModelRc::new(
@@ -50,12 +87,10 @@ fn main() {
         )
     );
 
-    // Share the database connection between callbacks
-    let database = Rc::new(database);
-
     let save_ui = ui.as_weak();
     let save_database = Rc::clone(&database);
     let save_sort = Rc::clone(&current_sort);
+    let save_search = Rc::clone(&current_search);
 
     ui.on_save_requested(
         move |
@@ -92,11 +127,13 @@ fn main() {
 
             // Refresh the collection from SQLite
             if let Some(ui) = save_ui.upgrade() {
+                let search_text = save_search.borrow().clone();
                 let sort_option = save_sort.borrow().clone();
 
                 let rows = load_rows(
                     &save_database,
-                    &sort_option
+                    &sort_option,
+                    &search_text
                 );
 
                 ui.set_rows(
@@ -112,6 +149,7 @@ fn main() {
 
     let add_database = Rc::clone(&database);
     let add_sort = Rc::clone(&current_sort);
+    let add_search = Rc::clone(&current_search);
     let add_ui = ui.as_weak();
 
     ui.on_add_fragrance(
@@ -146,11 +184,13 @@ fn main() {
             );
             
             let sort_option = add_sort.borrow().clone();
+            let search_text = add_search.borrow().clone();
 
             if let Some(ui) = add_ui.upgrade() {
                 let rows = load_rows(
                     &add_database,
-                    &sort_option
+                    &sort_option,
+                    &search_text
                 );
 
                 ui.set_rows(
@@ -167,6 +207,7 @@ fn main() {
     let delete_ui = ui.as_weak();
     let delete_database = Rc::clone(&database);
     let delete_sort = Rc::clone(&current_sort);
+    let delete_search = Rc::clone(&current_search);
 
     ui.on_delete_requested(
         move |id| {
@@ -176,11 +217,13 @@ fn main() {
             );
 
             let sort_option = delete_sort.borrow().clone();
+            let search_text = delete_search.borrow().clone();
 
             if let Some(ui) = delete_ui.upgrade() {
                 let rows = load_rows(
                     &delete_database,
-                    &sort_option
+                    &sort_option,
+                    &search_text
                 );
 
                 ui.set_rows(
@@ -204,9 +247,21 @@ fn group_into_rows<T: Clone>(items: &[T], row_size: usize) -> Vec<Vec<T>> {
         .collect()
 }
 
-fn load_rows(database: &rusqlite::Connection, sort_option: &str,) -> Vec<FragranceRow> {
+fn load_rows(database: &rusqlite::Connection, sort_option: &str, search_text: &str,) -> Vec<FragranceRow> {
     let fragrances = database::fragrance_repository::get_all(database);
-    let mut fragrances = fragrances;
+    let search = search_text.trim().to_lowercase();
+
+    let mut fragrances: Vec<_> = fragrances
+        .into_iter()
+        .filter(|fragrance| {
+            if search.is_empty() {
+                return true;
+            }
+
+            fragrance.brand.to_lowercase().contains(&search)
+                || fragrance.name.to_lowercase().contains(&search)
+        })
+        .collect();
 
     match sort_option {
         "Rating: High → Low" => {
