@@ -1,4 +1,4 @@
-import { VerticalBox, HorizontalBox, ScrollView, Button, LineEdit } from "std-widgets.slint";
+import { VerticalBox, HorizontalBox, ScrollView, Button, LineEdit, Slider } from "std-widgets.slint";
 import { FragranceData, ImageSelection } from "../types.slint";
 
 export component EditFragrance inherits Rectangle {
@@ -165,10 +165,45 @@ export component EditFragrance inherits Rectangle {
                 edited => { root.name = self.text; }
             }
 
-            LineEdit {
-                text: root.rating;
-                placeholder-text: "Rating";
-                edited => { root.rating = self.text.to-float(); }
+            VerticalBox {
+                spacing: 5px;
+
+                HorizontalBox {
+                    spacing: 10px;
+
+                    Text {
+                        text: "Rating:";
+                        color: white;
+                        font-size: 16px;
+                        vertical-alignment: center;
+                    }
+
+                    LineEdit {
+                        width: 60px;
+                        text: root.rating;
+
+                        edited => {
+                            root.rating = max(0.0, min(10.0, self.text.to-float()));
+                        }
+                    }
+
+                    Text {
+                        text: "/ 10";
+                        color: white;
+                        font-size: 16px;
+                        vertical-alignment: center;
+                    }
+                }
+
+                Slider {
+                    minimum: 0;
+                    maximum: 10;
+                    value: root.rating;
+
+                    changed(new-value) => {
+                        root.rating = round(new-value * 10) / 10;
+                    }
+                }
             }
 
             LineEdit {

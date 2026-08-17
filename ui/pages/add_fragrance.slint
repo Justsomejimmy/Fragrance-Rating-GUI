@@ -1,4 +1,4 @@
-import { VerticalBox, HorizontalBox, Button, LineEdit, SpinBox } from "std-widgets.slint";
+import { VerticalBox, HorizontalBox, Button, LineEdit, Slider } from "std-widgets.slint";
 import { FragranceData } from "../types.slint";
 
 export component AddFragrance inherits Rectangle {
@@ -23,7 +23,7 @@ export component AddFragrance inherits Rectangle {
 
     property <string> brand;
     property <string> name;
-    property <string> rating-text;
+    property <float> rating: 5.0;
     property <string> concentration;
     property <string> projection;
     property <string> longevity;
@@ -33,7 +33,7 @@ export component AddFragrance inherits Rectangle {
     property <string> seasons;
     property <string> my_notes;
     property <string> partner_notes;
-    
+
     in-out property <string> image_path;
 
     background: #181818;
@@ -76,9 +76,45 @@ export component AddFragrance inherits Rectangle {
             text <=> root.name;
         }
 
-        LineEdit {
-            placeholder-text: "Rating";
-            text <=> root.rating-text;
+        VerticalBox {
+            spacing: 5px;
+
+            HorizontalBox {
+                spacing: 10px;
+
+                Text {
+                    text: "Rating:";
+                    color: white;
+                    font-size: 16px;
+                    vertical-alignment: center;
+                }
+
+                LineEdit {
+                    width: 60px;
+                    text: root.rating;
+
+                    edited => {
+                        root.rating = max(0.0, min(10.0, self.text.to-float()));
+                    }
+                }
+
+                Text {
+                    text: "/ 10";
+                    color: white;
+                    font-size: 16px;
+                    vertical-alignment: center;
+                }
+            }
+
+            Slider {
+                minimum: 0;
+                maximum: 10;
+                value: root.rating;
+
+                changed(new-value) => {
+                    root.rating = round(new-value * 10) / 10;
+                }
+            }
         }
 
         LineEdit {
@@ -136,7 +172,7 @@ export component AddFragrance inherits Rectangle {
                     root.add_requested(
                         root.brand,
                         root.name,
-                        root.rating-text,
+                        "" + root.rating,
                         root.concentration,
                         root.projection,
                         root.longevity,
