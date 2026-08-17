@@ -57,9 +57,22 @@ export struct FragranceRow {
     fragrances: [FragranceData],
 }
 
+export struct DashboardData {
+    total: int,
+    average_rating: float,
+    highest_rated: FragranceData,
+    lowest_rated: FragranceData,
+    most_common_season: string,
+    season_top: [FragranceData],
+    recently_added: [FragranceData],
+    top_cologne: [FragranceData],
+    top_perfume: [FragranceData],
+}
+
 export enum Page {
     Collection,
     Details,
-    Edit, 
-    Add
+    Edit,
+    Add,
+    Dashboard,
 }

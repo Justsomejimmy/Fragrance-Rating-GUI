@@ -1,10 +1,11 @@
 import { VerticalBox, HorizontalBox } from "std-widgets.slint";
 import { sidebar } from "./components/sidebar.slint";
+import { Dashboard } from "./pages/dashboard.slint";
 import { CollectionPage } from "./pages/collection.slint";
 import { FragranceDetails } from "./pages/fragrance_details.slint";
-import { EditFragrance } from "./pages/edit_fragrance.slint";
-import { Page, FragranceRow, FragranceData, FragranceInput, ImageSelection } from "./types.slint";
 import { AddFragrance } from "./pages/add_fragrance.slint";
+import { EditFragrance } from "./pages/edit_fragrance.slint";
+import { Page, FragranceRow, FragranceData, FragranceInput, ImageSelection, DashboardData } from "./types.slint";
 
 export component MainWindow inherits Window {
     callback save_requested(FragranceInput);
@@ -18,8 +19,9 @@ export component MainWindow inherits Window {
     width: 1200px;
     height: 800px;
 
-    in-out property <Page> current-page: Page.Collection;
+    in-out property <Page> current-page: Page.Dashboard;
     in property <[FragranceRow]> rows;
+    in property <DashboardData> dashboard;
     property <FragranceData> selected-fragrance;
     in-out property <string> selected-image-path: "";
     property <string> current-sort: "Rating: High → Low";
@@ -29,6 +31,14 @@ export component MainWindow inherits Window {
 
     HorizontalBox {
         sidebar {
+            dashboard_requested => {
+                root.current-page = Page.Dashboard;
+            }
+            
+            collection_requested => {
+                root.current-page = Page.Collection;
+            }
+
             add_requested => {
                 root.current-page = Page.Add;
             }
@@ -36,6 +46,15 @@ export component MainWindow inherits Window {
 
         Rectangle {
             horizontal-stretch: 1;
+
+            if root.current-page == Page.Dashboard : Dashboard {
+                dashboard: root.dashboard;
+
+                fragrance_clicked(fragrance) => {
+                    root.selected-fragrance = fragrance;
+                    root.current-page = Page.Details;
+                }
+            }
 
             if root.current-page == Page.Collection : CollectionPage {
                 rows: root.rows;
