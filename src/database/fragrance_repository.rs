@@ -126,6 +126,7 @@ pub fn insert(
     purchase_date: &str,
     notes: &str,
     seasons: &str,
+    image_path: &str,
     my_notes: &str,
     partner_notes: &str,
 ) {
@@ -146,7 +147,7 @@ pub fn insert(
             my_notes,
             partner_notes
         )
-        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, '', ?11, ?12)
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)
         ",
         rusqlite::params![
             brand,
@@ -159,6 +160,7 @@ pub fn insert(
             rating,
             notes,
             seasons,
+            image_path,
             my_notes,
             partner_notes
         ],

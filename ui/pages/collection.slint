@@ -5,7 +5,7 @@ import { FragranceData, FragranceRow } from "../types.slint";
 export component CollectionPage inherits Rectangle {
     in-out property <string> sort-option: "Rating: High → Low";
     in-out property <string> search-text: "";
-
+    in property <image> fragrance-image;
     in property <[FragranceRow]> rows;
 
     callback fragrance_clicked(FragranceData);
@@ -80,6 +80,7 @@ export component CollectionPage inherits Rectangle {
                         rating: fragrance.rating;
                         notes: fragrance.notes;
                         seasons: fragrance.seasons;
+                        fragrance-image: fragrance.image;
 
                         card_clicked => {
                             root.fragrance_clicked(fragrance);

@@ -14,11 +14,13 @@ export component AddFragrance inherits Rectangle {
         string,
         string,
         string,
+        string,
         string
     );
 
     callback cancel_requested();
-    
+    callback choose_image_requested();
+
     property <string> brand;
     property <string> name;
     property <string> rating-text;
@@ -31,6 +33,8 @@ export component AddFragrance inherits Rectangle {
     property <string> seasons;
     property <string> my_notes;
     property <string> partner_notes;
+    
+    in-out property <string> image_path;
 
     background: #181818;
 
@@ -42,6 +46,24 @@ export component AddFragrance inherits Rectangle {
             text: "Add Fragrance";
             font-size: 32px;
             color: white;
+        }
+
+        HorizontalBox {
+            spacing: 10px;
+
+            Button {
+                text: "Choose Image";
+
+                clicked => {
+                    root.choose_image_requested();
+                }
+            }
+
+            Text {
+                text: root.image_path == "" ? "No image selected" : root.image_path;
+                color: #aaaaaa;
+                vertical-alignment: center;
+            }
         }
 
         LineEdit {
@@ -123,7 +145,8 @@ export component AddFragrance inherits Rectangle {
                         root.notes,
                         root.seasons,
                         root.my_notes,
-                        root.partner_notes
+                        root.partner_notes,
+                        root.image_path
                     );
                 }
             }

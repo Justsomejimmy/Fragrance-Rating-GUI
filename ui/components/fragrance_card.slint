@@ -6,6 +6,7 @@ export component FragranceCard inherits Rectangle {
     in property <float> rating;
     in property <string> notes;
     in property <string> seasons;
+    in property <image> fragrance-image;
 
     callback card_clicked();
 
@@ -26,17 +27,11 @@ export component FragranceCard inherits Rectangle {
         padding: 15px;
         spacing: 10px;
 
-        Rectangle {
-
-            height: 150px;
-            background: #333333;
-
-            Text {
-                text: "Bottle";
-                color: #aaaaaa;
-                horizontal-alignment: center;
-                vertical-alignment: center;
-            }
+        Image {
+            source: root.fragrance-image;
+            width: 180px;
+            height: 180px;
+            image-fit: contain;
         }
 
         Text {

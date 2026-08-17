@@ -2,7 +2,7 @@ mod database;
 mod models;
 slint::include_modules!();
 use std::rc::Rc;
-use slint::{ModelRc, VecModel};
+use slint::{Image, ModelRc, VecModel};
 
 fn main() {
     let database = database::establish_connection();
@@ -147,6 +147,28 @@ fn main() {
         }
     );
 
+    let image_ui = ui.as_weak();
+
+    ui.on_choose_image_requested(
+        move || {
+            if let Some(path) = rfd::FileDialog::new()
+                .add_filter(
+                    "Images",
+                    &["png", "jpg", "jpeg", "webp"]
+                )
+                .pick_file()
+            {
+                println!("Selected image: {}", path.display());
+
+                if let Some(ui) = image_ui.upgrade() {
+                    ui.set_selected_image_path(
+                        path.to_string_lossy().to_string().into()
+                    );
+                }
+            }
+        }
+    );
+
     let add_database = Rc::clone(&database);
     let add_sort = Rc::clone(&current_sort);
     let add_search = Rc::clone(&current_search);
@@ -165,7 +187,8 @@ fn main() {
             notes,
             seasons,
             my_notes,
-            partner_notes
+            partner_notes,
+            image_path
         | {
             database::fragrance_repository::insert(
                 &add_database,
@@ -179,6 +202,7 @@ fn main() {
                 &purchase_date,
                 &notes,
                 &seasons,
+                &image_path,
                 &my_notes,
                 &partner_notes,
             );
@@ -249,6 +273,15 @@ fn group_into_rows<T: Clone>(items: &[T], row_size: usize) -> Vec<Vec<T>> {
 
 fn load_rows(database: &rusqlite::Connection, sort_option: &str, search_text: &str,) -> Vec<FragranceRow> {
     let fragrances = database::fragrance_repository::get_all(database);
+    
+    for fragrance in &fragrances {
+        println!(
+            "{} -> image_path: '{}'",
+            fragrance.name,
+            fragrance.image_path
+        );
+    }
+    
     let search = search_text.trim().to_lowercase();
 
     let mut fragrances: Vec<_> = fragrances
@@ -298,6 +331,28 @@ fn load_rows(database: &rusqlite::Connection, sort_option: &str, search_text: &s
     let ui_fragrances = fragrances
         .iter()
         .map(|f| {
+            let image = if f.image_path.is_empty() {
+                println!("No image for: {}", f.name);
+                Image::default()
+            } else {
+                match Image::load_from_path(
+                    std::path::Path::new(&f.image_path)
+                ) {
+                    Ok(image) => {
+                        println!("Loaded image for {}: {}", f.name, f.image_path);
+                        image
+                    }
+                    Err(error) => {
+                        println!(
+                            "FAILED to load image for {}: {}",
+                            f.name,
+                            error
+                        );
+                        Image::default()
+                    }
+                }
+            };
+
             FragranceData {
                 id: f.id,
                 brand: f.brand.clone().into(),
@@ -310,7 +365,7 @@ fn load_rows(database: &rusqlite::Connection, sort_option: &str, search_text: &s
                 rating: f.rating,
                 notes: f.notes.clone().into(),
                 seasons: f.seasons.clone().into(),
-                image_path: f.image_path.clone().into(),
+                image,
                 my_notes: f.my_notes.clone().into(),
                 partner_notes: f.partner_notes.clone().into(),
             }

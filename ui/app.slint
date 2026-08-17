@@ -34,11 +34,13 @@ export component MainWindow inherits Window {
         string,
         string,
         string,
+        string,
         string
     );
     callback delete_requested(int);
     callback refresh_collection(string);
     callback search_collection(string);
+    callback choose_image_requested();
 
     width: 1200px;
     height: 800px;
@@ -46,6 +48,7 @@ export component MainWindow inherits Window {
     in-out property <Page> current-page: Page.Collection;
     in property <[FragranceRow]> rows;
     property <FragranceData> selected-fragrance;
+    in-out property <string> selected-image-path: "";
     property <string> current-sort: "Rating: High → Low";
 
     title: "Fragrance Vault";
@@ -129,7 +132,7 @@ export component MainWindow inherits Window {
                         rating: rating,
                         notes: notes,
                         seasons: seasons,
-                        image_path: root.selected-fragrance.image_path,
+                        image: root.selected-fragrance.image,
                         my_notes: my_notes,
                         partner_notes: partner_notes
                     };
@@ -155,6 +158,12 @@ export component MainWindow inherits Window {
             }
 
             if root.current-page == Page.Add : AddFragrance {
+                image_path <=> root.selected-image-path;
+                
+                choose_image_requested => {
+                    root.choose_image_requested();
+                }
+
                 add_requested(
                     brand,
                     name,
@@ -167,7 +176,8 @@ export component MainWindow inherits Window {
                     notes,
                     seasons,
                     my_notes,
-                    partner_notes
+                    partner_notes,
+                    image_path
                 ) => {
                     root.add_fragrance(
                         brand,
@@ -181,7 +191,8 @@ export component MainWindow inherits Window {
                         notes,
                         seasons,
                         my_notes,
-                        partner_notes
+                        partner_notes,
+                        image_path
                     );
 
                     root.current-page = Page.Collection;
