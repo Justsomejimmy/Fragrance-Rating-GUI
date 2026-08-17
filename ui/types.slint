@@ -17,6 +17,35 @@ export struct FragranceData {
     image_offset_x: float,
     image_offset_y: float,
     image_scale: float,
+    season_spring: bool,
+    season_summer: bool,
+    season_fall: bool,
+    season_winter: bool,
+    category: string,
+}
+
+export struct FragranceInput {
+    id: int,
+    brand: string,
+    name: string,
+    rating: float,
+    concentration: string,
+    projection: string,
+    longevity: string,
+    price: string,
+    purchase_date: string,
+    notes: string,
+    season_spring: bool,
+    season_summer: bool,
+    season_fall: bool,
+    season_winter: bool,
+    category: string,
+    my_notes: string,
+    partner_notes: string,
+    image_path: string,
+    image_offset_x: float,
+    image_offset_y: float,
+    image_scale: float,
 }
 
 export struct ImageSelection {

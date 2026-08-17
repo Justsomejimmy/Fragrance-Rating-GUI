@@ -1,5 +1,5 @@
-import { VerticalBox, HorizontalBox, ScrollView, Button, LineEdit, Slider } from "std-widgets.slint";
-import { FragranceData, ImageSelection } from "../types.slint";
+import { VerticalBox, HorizontalBox, ScrollView, Button, LineEdit, Slider, CheckBox } from "std-widgets.slint";
+import { FragranceData, FragranceInput, ImageSelection } from "../types.slint";
 
 export component EditFragrance inherits Rectangle {
     in property <FragranceData> fragrance;
@@ -13,7 +13,11 @@ export component EditFragrance inherits Rectangle {
     property <string> price;
     property <string> purchase_date;
     property <string> notes;
-    property <string> seasons;
+    property <bool> season_spring;
+    property <bool> season_summer;
+    property <bool> season_fall;
+    property <bool> season_winter;
+    property <string> category;
     property <string> my_notes;
     property <string> partner_notes;
 
@@ -38,7 +42,11 @@ export component EditFragrance inherits Rectangle {
         root.price = fragrance.price;
         root.purchase_date = fragrance.purchase_date;
         root.notes = fragrance.notes;
-        root.seasons = fragrance.seasons;
+        root.season_spring = fragrance.season_spring;
+        root.season_summer = fragrance.season_summer;
+        root.season_fall = fragrance.season_fall;
+        root.season_winter = fragrance.season_winter;
+        root.category = fragrance.category == "" ? "Perfume" : fragrance.category;
         root.my_notes = fragrance.my_notes;
         root.partner_notes = fragrance.partner_notes;
 
@@ -49,10 +57,7 @@ export component EditFragrance inherits Rectangle {
         root.scale = fragrance.image_scale <= 0 ? 1.0 : fragrance.image_scale;
     }
 
-    callback save_requested(
-        int, string, string, float, string, string, string, string,
-        string, string, string, string, string, string, float, float, float
-    );
+    callback save_requested(FragranceInput);
     callback cancel_requested();
     callback choose_image_requested() -> ImageSelection;
 
@@ -242,10 +247,70 @@ export component EditFragrance inherits Rectangle {
                 edited => { root.notes = self.text; }
             }
 
-            LineEdit {
-                text: root.seasons;
-                placeholder-text: "Seasons";
-                edited => { root.seasons = self.text; }
+            VerticalBox {
+                spacing: 5px;
+
+                Text {
+                    text: "Seasons";
+                    color: white;
+                    font-size: 16px;
+                }
+
+                HorizontalBox {
+                    spacing: 15px;
+
+                    CheckBox {
+                        text: "Spring";
+                        checked <=> root.season_spring;
+                    }
+
+                    CheckBox {
+                        text: "Summer";
+                        checked <=> root.season_summer;
+                    }
+
+                    CheckBox {
+                        text: "Fall";
+                        checked <=> root.season_fall;
+                    }
+
+                    CheckBox {
+                        text: "Winter";
+                        checked <=> root.season_winter;
+                    }
+                }
+            }
+
+            VerticalBox {
+                spacing: 5px;
+
+                Text {
+                    text: "Category";
+                    color: white;
+                    font-size: 16px;
+                }
+
+                HorizontalBox {
+                    spacing: 15px;
+
+                    CheckBox {
+                        text: "Perfume";
+                        checked: root.category == "Perfume";
+                        toggled => { root.category = "Perfume"; }
+                    }
+
+                    CheckBox {
+                        text: "Unisex";
+                        checked: root.category == "Unisex";
+                        toggled => { root.category = "Unisex"; }
+                    }
+
+                    CheckBox {
+                        text: "Cologne";
+                        checked: root.category == "Cologne";
+                        toggled => { root.category = "Cologne"; }
+                    }
+                }
             }
 
             LineEdit {
@@ -267,25 +332,29 @@ export component EditFragrance inherits Rectangle {
                     text: "Save";
 
                     clicked => {
-                        root.save_requested(
-                            root.fragrance.id,
-                            root.brand,
-                            root.name,
-                            root.rating,
-                            root.concentration,
-                            root.projection,
-                            root.longevity,
-                            root.price,
-                            root.purchase_date,
-                            root.notes,
-                            root.seasons,
-                            root.my_notes,
-                            root.partner_notes,
-                            root.image_path,
-                            root.offset_x / 1px,
-                            root.offset_y / 1px,
-                            root.scale
-                        );
+                        root.save_requested({
+                            id: root.fragrance.id,
+                            brand: root.brand,
+                            name: root.name,
+                            rating: root.rating,
+                            concentration: root.concentration,
+                            projection: root.projection,
+                            longevity: root.longevity,
+                            price: root.price,
+                            purchase_date: root.purchase_date,
+                            notes: root.notes,
+                            season_spring: root.season_spring,
+                            season_summer: root.season_summer,
+                            season_fall: root.season_fall,
+                            season_winter: root.season_winter,
+                            category: root.category,
+                            my_notes: root.my_notes,
+                            partner_notes: root.partner_notes,
+                            image_path: root.image_path,
+                            image_offset_x: root.offset_x / 1px,
+                            image_offset_y: root.offset_y / 1px,
+                            image_scale: root.scale,
+                        });
                     }
                 }
 

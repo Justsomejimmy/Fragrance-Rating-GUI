@@ -7,7 +7,8 @@ pub fn get_all(conn: &Connection) -> Vec<Fragrance> {
         SELECT
             id, brand, name, concentration, projection, longevity,
             price, purchase_date, rating, notes, seasons, image_path,
-            my_notes, partner_notes, image_offset_x, image_offset_y, image_scale
+            my_notes, partner_notes, image_offset_x, image_offset_y,
+            image_scale, category
         FROM fragrances
         "
     ).unwrap();
@@ -31,6 +32,7 @@ pub fn get_all(conn: &Connection) -> Vec<Fragrance> {
             image_offset_x: row.get(14)?,
             image_offset_y: row.get(15)?,
             image_scale: row.get(16)?,
+            category: row.get(17)?,
         })
     }).unwrap();
 
@@ -43,9 +45,9 @@ pub fn insert(conn: &Connection, fragrance: NewFragrance) {
         INSERT INTO fragrances (
             brand, name, concentration, projection, longevity, price,
             purchase_date, rating, notes, seasons, image_path, my_notes,
-            partner_notes, image_offset_x, image_offset_y, image_scale
+            partner_notes, image_offset_x, image_offset_y, image_scale, category
         )
-        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17)
         ",
         rusqlite::params![
             fragrance.brand,
@@ -64,6 +66,7 @@ pub fn insert(conn: &Connection, fragrance: NewFragrance) {
             fragrance.image_offset_x,
             fragrance.image_offset_y,
             fragrance.image_scale,
+            fragrance.category,
         ],
     ).unwrap();
 }
@@ -76,8 +79,9 @@ pub fn update(conn: &Connection, fragrance: UpdateFragrance) {
             brand = ?1, name = ?2, rating = ?3, concentration = ?4,
             projection = ?5, longevity = ?6, price = ?7, purchase_date = ?8,
             notes = ?9, seasons = ?10, my_notes = ?11, partner_notes = ?12,
-            image_path = ?13, image_offset_x = ?14, image_offset_y = ?15, image_scale = ?16
-        WHERE id = ?17
+            image_path = ?13, image_offset_x = ?14, image_offset_y = ?15,
+            image_scale = ?16, category = ?17
+        WHERE id = ?18
         ",
         rusqlite::params![
             fragrance.brand,
@@ -96,6 +100,7 @@ pub fn update(conn: &Connection, fragrance: UpdateFragrance) {
             fragrance.image_offset_x,
             fragrance.image_offset_y,
             fragrance.image_scale,
+            fragrance.category,
             fragrance.id,
         ],
     ).unwrap();

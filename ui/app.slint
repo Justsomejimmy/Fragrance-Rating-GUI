@@ -3,18 +3,12 @@ import { sidebar } from "./components/sidebar.slint";
 import { CollectionPage } from "./pages/collection.slint";
 import { FragranceDetails } from "./pages/fragrance_details.slint";
 import { EditFragrance } from "./pages/edit_fragrance.slint";
-import { Page, FragranceRow, FragranceData, ImageSelection } from "./types.slint";
+import { Page, FragranceRow, FragranceData, FragranceInput, ImageSelection } from "./types.slint";
 import { AddFragrance } from "./pages/add_fragrance.slint";
 
 export component MainWindow inherits Window {
-    callback save_requested(
-        int, string, string, float, string, string, string, string,
-        string, string, string, string, string, string, float, float, float
-    );
-    callback add_fragrance(
-        string, string, string, string, string, string, string, string,
-        string, string, string, string, string
-    );
+    callback save_requested(FragranceInput);
+    callback add_fragrance(FragranceInput);
     callback delete_requested(int);
     callback refresh_collection(string);
     callback search_collection(string);
@@ -88,40 +82,34 @@ export component MainWindow inherits Window {
                     return root.choose_image_requested_edit();
                 }
 
-                save_requested(
-                    id, brand, name, rating, concentration, projection,
-                    longevity, price, purchase_date, notes, seasons,
-                    my_notes, partner_notes, image_path,
-                    image_offset_x, image_offset_y, image_scale
-                ) => {
+                save_requested(input) => {
                     root.selected-fragrance = {
-                        id: id,
-                        brand: brand,
-                        name: name,
-                        concentration: concentration,
-                        projection: projection,
-                        longevity: longevity,
-                        price: price,
-                        purchase_date: purchase_date,
-                        rating: rating,
-                        notes: notes,
-                        seasons: seasons,
+                        id: input.id,
+                        brand: input.brand,
+                        name: input.name,
+                        concentration: input.concentration,
+                        projection: input.projection,
+                        longevity: input.longevity,
+                        price: input.price,
+                        purchase_date: input.purchase_date,
+                        rating: input.rating,
+                        notes: input.notes,
+                        seasons: root.selected-fragrance.seasons,
                         image: root.selected-fragrance.image,
-                        my_notes: my_notes,
-                        partner_notes: partner_notes,
-                        image_path: image_path,
-                        image_offset_x: image_offset_x,
-                        image_offset_y: image_offset_y,
-                        image_scale: image_scale,
+                        my_notes: input.my_notes,
+                        partner_notes: input.partner_notes,
+                        image_path: input.image_path,
+                        image_offset_x: input.image_offset_x,
+                        image_offset_y: input.image_offset_y,
+                        image_scale: input.image_scale,
+                        season_spring: input.season_spring,
+                        season_summer: input.season_summer,
+                        season_fall: input.season_fall,
+                        season_winter: input.season_winter,
+                        category: input.category,
                     };
 
-                    root.save_requested(
-                        id, brand, name, rating, concentration, projection,
-                        longevity, price, purchase_date, notes, seasons,
-                        my_notes, partner_notes, image_path,
-                        image_offset_x, image_offset_y, image_scale
-                    );
-
+                    root.save_requested(input);
                     root.current-page = Page.Details;
                 }
             }
@@ -133,16 +121,8 @@ export component MainWindow inherits Window {
                     root.choose_image_requested();
                 }
 
-                add_requested(
-                    brand, name, rating, concentration, projection,
-                    longevity, price, purchase_date, notes, seasons,
-                    my_notes, partner_notes, image_path
-                ) => {
-                    root.add_fragrance(
-                        brand, name, rating, concentration, projection,
-                        longevity, price, purchase_date, notes, seasons,
-                        my_notes, partner_notes, image_path
-                    );
+                add_requested(input) => {
+                    root.add_fragrance(input);
                     root.current-page = Page.Collection;
                 }
 

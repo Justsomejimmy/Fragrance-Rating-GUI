@@ -1,4 +1,4 @@
-import { VerticalBox } from "std-widgets.slint";
+import { VerticalBox, HorizontalBox } from "std-widgets.slint";
 
 export component FragranceCard inherits Rectangle {
     in property <string> brand;
@@ -6,6 +6,7 @@ export component FragranceCard inherits Rectangle {
     in property <float> rating;
     in property <string> notes;
     in property <string> seasons;
+    in property <string> category;
     in property <image> fragrance-image;
     in property <float> image_offset_x;
     in property <float> image_offset_y;
@@ -44,11 +45,23 @@ export component FragranceCard inherits Rectangle {
             }
         }
 
-        Text {
-            text: brand + " - " + name;
-            color: white;
-            font-size: 18px;
-            wrap: word-wrap;
+        HorizontalBox {
+            spacing: 8px;
+
+            Text {
+                text: brand + " - " + name;
+                color: white;
+                font-size: 18px;
+                wrap: word-wrap;
+                horizontal-stretch: 1;
+            }
+
+            Text {
+                text: category;
+                color: #66aaff;
+                font-size: 12px;
+                vertical-alignment: center;
+            }
         }
 
         Text {

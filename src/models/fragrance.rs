@@ -1,6 +1,3 @@
-use serde::Serialize;
-
-#[derive(Debug, Clone, Serialize)]
 pub struct Fragrance {
     pub id: i64,
     pub brand: String,
@@ -19,6 +16,7 @@ pub struct Fragrance {
     pub image_offset_x: f64,
     pub image_offset_y: f64,
     pub image_scale: f64,
+    pub category: String,
 }
 
 pub struct NewFragrance<'a> {
@@ -38,6 +36,7 @@ pub struct NewFragrance<'a> {
     pub image_offset_x: f64,
     pub image_offset_y: f64,
     pub image_scale: f64,
+    pub category: &'a str,
 }
 
 pub struct UpdateFragrance<'a> {
@@ -58,4 +57,5 @@ pub struct UpdateFragrance<'a> {
     pub image_offset_x: f64,
     pub image_offset_y: f64,
     pub image_scale: f64,
+    pub category: &'a str,
 }

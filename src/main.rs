@@ -4,6 +4,15 @@ slint::include_modules!();
 use std::rc::Rc;
 use slint::{Image, ModelRc, VecModel};
 
+fn join_seasons(spring: bool, summer: bool, fall: bool, winter: bool) -> String {
+    let mut parts = Vec::new();
+    if spring { parts.push("Spring"); }
+    if summer { parts.push("Summer"); }
+    if fall { parts.push("Fall"); }
+    if winter { parts.push("Winter"); }
+    parts.join(",")
+}
+
 fn main() {
     let database = database::establish_connection();
 
@@ -93,31 +102,35 @@ fn main() {
     let save_search = Rc::clone(&current_search);
 
     ui.on_save_requested(
-        move |
-            id, brand, name, rating, concentration, projection, longevity,
-            price, purchase_date, notes, seasons, my_notes, partner_notes,
-            image_path, image_offset_x, image_offset_y, image_scale
-        | {
+        move |input| {
+            let seasons = join_seasons(
+                input.season_spring,
+                input.season_summer,
+                input.season_fall,
+                input.season_winter,
+            );
+
             database::fragrance_repository::update(
                 &save_database,
                 models::fragrance::UpdateFragrance {
-                    id: id as i64,
-                    brand: &brand,
-                    name: &name,
-                    rating: rating as f64,
-                    concentration: &concentration,
-                    projection: &projection,
-                    longevity: &longevity,
-                    price: &price,
-                    purchase_date: &purchase_date,
-                    notes: &notes,
+                    id: input.id as i64,
+                    brand: &input.brand,
+                    name: &input.name,
+                    rating: input.rating as f64,
+                    concentration: &input.concentration,
+                    projection: &input.projection,
+                    longevity: &input.longevity,
+                    price: &input.price,
+                    purchase_date: &input.purchase_date,
+                    notes: &input.notes,
                     seasons: &seasons,
-                    my_notes: &my_notes,
-                    partner_notes: &partner_notes,
-                    image_path: &image_path,
-                    image_offset_x: image_offset_x as f64,
-                    image_offset_y: image_offset_y as f64,
-                    image_scale: image_scale as f64,
+                    my_notes: &input.my_notes,
+                    partner_notes: &input.partner_notes,
+                    image_path: &input.image_path,
+                    image_offset_x: input.image_offset_x as f64,
+                    image_offset_y: input.image_offset_y as f64,
+                    image_scale: input.image_scale as f64,
+                    category: &input.category,
                 },
             );
 
@@ -128,7 +141,7 @@ fn main() {
                 ui.set_rows(ModelRc::new(VecModel::from(rows)));
             }
 
-            println!("Updated fragrance: {}", name);
+            println!("Updated fragrance: {}", input.name);
         }
     );
 
@@ -160,61 +173,46 @@ fn main() {
     let add_ui = ui.as_weak();
 
     ui.on_add_fragrance(
-        move |
-            brand,
-            name,
-            rating,
-            concentration,
-            projection,
-            longevity,
-            price,
-            purchase_date,
-            notes,
-            seasons,
-            my_notes,
-            partner_notes,
-            image_path
-        | {
+        move |input| {
+            let seasons = join_seasons(
+                input.season_spring,
+                input.season_summer,
+                input.season_fall,
+                input.season_winter,
+            );
+
             database::fragrance_repository::insert(
                 &add_database,
                 models::fragrance::NewFragrance {
-                    brand: &brand,
-                    name: &name,
-                    rating: rating.parse::<f64>().unwrap_or(0.0),
-                    concentration: &concentration,
-                    projection: &projection,
-                    longevity: &longevity,
-                    price: &price,
-                    purchase_date: &purchase_date,
-                    notes: &notes,
+                    brand: &input.brand,
+                    name: &input.name,
+                    rating: input.rating as f64,
+                    concentration: &input.concentration,
+                    projection: &input.projection,
+                    longevity: &input.longevity,
+                    price: &input.price,
+                    purchase_date: &input.purchase_date,
+                    notes: &input.notes,
                     seasons: &seasons,
-                    image_path: &image_path,
-                    my_notes: &my_notes,
-                    partner_notes: &partner_notes,
-                    image_offset_x: 0.0,
-                    image_offset_y: 0.0,
-                    image_scale: 1.0,
+                    image_path: &input.image_path,
+                    my_notes: &input.my_notes,
+                    partner_notes: &input.partner_notes,
+                    image_offset_x: input.image_offset_x as f64,
+                    image_offset_y: input.image_offset_y as f64,
+                    image_scale: input.image_scale as f64,
+                    category: &input.category,
                 },
             );
-            
+
             let sort_option = add_sort.borrow().clone();
             let search_text = add_search.borrow().clone();
 
             if let Some(ui) = add_ui.upgrade() {
-                let rows = load_rows(
-                    &add_database,
-                    &sort_option,
-                    &search_text
-                );
-
-                ui.set_rows(
-                    ModelRc::new(
-                        VecModel::from(rows)
-                    )
-                );
+                let rows = load_rows(&add_database, &sort_option, &search_text);
+                ui.set_rows(ModelRc::new(VecModel::from(rows)));
             }
 
-            println!("Added fragrance: {}", name);
+            println!("Added fragrance: {}", input.name);
         }
     );
 
@@ -388,6 +386,11 @@ fn load_rows(database: &rusqlite::Connection, sort_option: &str, search_text: &s
                 image_offset_x: f.image_offset_x as f32,
                 image_offset_y: f.image_offset_y as f32,
                 image_scale: f.image_scale as f32,
+                season_spring: f.seasons.contains("Spring"),
+                season_summer: f.seasons.contains("Summer"),
+                season_fall: f.seasons.contains("Fall"),
+                season_winter: f.seasons.contains("Winter"),
+                category: f.category.clone().into(),
             }
         })
         .collect::<Vec<_>>();
