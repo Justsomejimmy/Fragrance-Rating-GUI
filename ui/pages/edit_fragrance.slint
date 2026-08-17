@@ -1,6 +1,5 @@
-import { VerticalBox, HorizontalBox, Button, LineEdit } from "std-widgets.slint";
-import { FragranceData } from "../types.slint";
-
+import { VerticalBox, HorizontalBox, ScrollView, Button, LineEdit } from "std-widgets.slint";
+import { FragranceData, ImageSelection } from "../types.slint";
 
 export component EditFragrance inherits Rectangle {
     in property <FragranceData> fragrance;
@@ -18,6 +17,17 @@ export component EditFragrance inherits Rectangle {
     property <string> my_notes;
     property <string> partner_notes;
 
+    property <string> image_path;
+    property <image> preview_image;
+    property <length> offset_x;
+    property <length> offset_y;
+    property <float> scale: 1.0;
+
+    property <length> drag_start_offset_x;
+    property <length> drag_start_offset_y;
+
+    property <length> preview_size: 240px;
+
     init => {
         root.brand = fragrance.brand;
         root.name = fragrance.name;
@@ -31,163 +41,222 @@ export component EditFragrance inherits Rectangle {
         root.seasons = fragrance.seasons;
         root.my_notes = fragrance.my_notes;
         root.partner_notes = fragrance.partner_notes;
+
+        root.image_path = fragrance.image_path;
+        root.preview_image = fragrance.image;
+        root.offset_x = fragrance.image_offset_x * 1px;
+        root.offset_y = fragrance.image_offset_y * 1px;
+        root.scale = fragrance.image_scale <= 0 ? 1.0 : fragrance.image_scale;
     }
 
     callback save_requested(
-        int,
-        string,
-        string,
-        float,
-        string,
-        string,
-        string,
-        string,
-        string,
-        string,
-        string,
-        string,
-        string
+        int, string, string, float, string, string, string, string,
+        string, string, string, string, string, string, float, float, float
     );
     callback cancel_requested();
+    callback choose_image_requested() -> ImageSelection;
+
+    function apply-image-selection(sel: ImageSelection) {
+        if (sel.path != "") {
+            root.image_path = sel.path;
+            root.preview_image = sel.picture;
+            root.offset_x = 0px;
+            root.offset_y = 0px;
+            root.scale = 1.0;
+        }
+    }
 
     background: #181818;
 
-    VerticalBox {
-        padding: 30px;
-        spacing: 15px;
+    ScrollView {
+        VerticalBox {
+            padding: 30px;
+            spacing: 15px;
 
-        Text {
-            text: "Edit Fragrances";
-            font-size: 32px;
-            color: white;
-        }
-
-        LineEdit {
-            text: root.brand;
-
-            edited => {
-                root.brand = self.text;
+            Text {
+                text: "Edit Fragrance";
+                font-size: 32px;
+                color: white;
             }
-        }
 
-        LineEdit {
-            text: root.name;
+            HorizontalBox {
+                spacing: 20px;
 
-            edited => {
-                root.name = self.text;
-            }
-        }
+                Rectangle {
+                    width: root.preview_size;
+                    height: root.preview_size;
+                    clip: true;
+                    border-radius: 8px;
+                    background: #000000;
 
-        LineEdit {
-            text: root.rating;
+                    Image {
+                        source: root.preview_image;
+                        width: root.preview_size * root.scale;
+                        height: root.preview_size * root.scale;
+                        x: (root.preview_size - self.width) / 2 + root.offset_x;
+                        y: (root.preview_size - self.height) / 2 + root.offset_y;
+                        image-fit: contain;
+                    }
 
-            edited => {
-                root.rating = self.text.to-float();
-            }
-        }
+                    TouchArea {
+                        width: 100%;
+                        height: 100%;
 
-        LineEdit {
-            text: root.concentration;
+                        moved => {
+                            if (self.pressed) {
+                                root.offset_x = root.drag_start_offset_x + (self.mouse-x - self.pressed-x);
+                                root.offset_y = root.drag_start_offset_y + (self.mouse-y - self.pressed-y);
+                            }
+                        }
 
-            edited => {
-                root.concentration = self.text;
-            }
-        }
+                        pointer-event(event) => {
+                            if (event.kind == PointerEventKind.down) {
+                                root.drag_start_offset_x = root.offset_x;
+                                root.drag_start_offset_y = root.offset_y;
+                            }
+                        }
 
-        LineEdit {
-            text: root.projection;
+                        scroll-event(event) => {
+                            root.scale = max(0.2, min(5.0, root.scale + (event.delta-y / 1px) / 1000));
+                            accept
+                        }
+                    }
+                }
 
-            edited => {
-                root.projection = self.text;
-            }
-        }
+                VerticalBox {
+                    spacing: 10px;
 
-        LineEdit {
-            text: root.longevity;
+                    Button {
+                        text: "Change Image";
 
-            edited => {
-                root.longevity = self.text;
-            }
-        }
+                        clicked => {
+                            root.apply-image-selection(root.choose_image_requested());
+                        }
+                    }
 
-        LineEdit {
-            text: root.price;
+                    Button {
+                        text: "Reset Position/Zoom";
 
-            edited => {
-                root.price = self.text;
-            }
-        }
+                        clicked => {
+                            root.offset_x = 0px;
+                            root.offset_y = 0px;
+                            root.scale = 1.0;
+                        }
+                    }
 
-        LineEdit {
-            text: root.purchase_date;
-
-            edited => {
-                root.purchase_date = self.text;
-            }
-        }
-
-        LineEdit {
-            text: root.notes;
-
-            edited => {
-                root.notes = self.text;
-            }
-        }
-
-        LineEdit {
-            text: root.seasons;
-
-            edited => {
-                root.seasons = self.text;
-            }
-        }
-
-        LineEdit {
-            text: root.my_notes;
-
-            edited => {
-                root.my_notes = self.text;
-            }
-        }
-
-        LineEdit {
-            text: root.partner_notes;
-
-            edited => {
-                root.partner_notes = self.text;
-            }
-        }
-
-        HorizontalBox {
-            spacing: 20px;
-
-            Button {
-                text: "Save";
-
-                clicked => {
-                    root.save_requested(
-                        root.fragrance.id,
-                        root.brand,
-                        root.name,
-                        root.rating,
-                        root.concentration,
-                        root.projection,
-                        root.longevity,
-                        root.price,
-                        root.purchase_date,
-                        root.notes,
-                        root.seasons,
-                        root.my_notes,
-                        root.partner_notes 
-                    );
+                    Text {
+                        text: "Drag image to reposition, scroll to zoom";
+                        color: #aaaaaa;
+                        font-size: 12px;
+                        wrap: word-wrap;
+                    }
                 }
             }
 
-            Button {
-                text: "Cancel";
+            LineEdit {
+                text: root.brand;
+                placeholder-text: "Brand";
+                edited => { root.brand = self.text; }
+            }
 
-                clicked => {
-                    root.cancel_requested();
+            LineEdit {
+                text: root.name;
+                placeholder-text: "Name";
+                edited => { root.name = self.text; }
+            }
+
+            LineEdit {
+                text: root.rating;
+                placeholder-text: "Rating";
+                edited => { root.rating = self.text.to-float(); }
+            }
+
+            LineEdit {
+                text: root.concentration;
+                placeholder-text: "Concentration";
+                edited => { root.concentration = self.text; }
+            }
+
+            LineEdit {
+                text: root.projection;
+                placeholder-text: "Projection";
+                edited => { root.projection = self.text; }
+            }
+
+            LineEdit {
+                text: root.longevity;
+                placeholder-text: "Longevity";
+                edited => { root.longevity = self.text; }
+            }
+
+            LineEdit {
+                text: root.price;
+                placeholder-text: "Price";
+                edited => { root.price = self.text; }
+            }
+
+            LineEdit {
+                text: root.purchase_date;
+                placeholder-text: "Purchase Date";
+                edited => { root.purchase_date = self.text; }
+            }
+
+            LineEdit {
+                text: root.notes;
+                placeholder-text: "Notes";
+                edited => { root.notes = self.text; }
+            }
+
+            LineEdit {
+                text: root.seasons;
+                placeholder-text: "Seasons";
+                edited => { root.seasons = self.text; }
+            }
+
+            LineEdit {
+                text: root.my_notes;
+                placeholder-text: "My Notes";
+                edited => { root.my_notes = self.text; }
+            }
+
+            LineEdit {
+                text: root.partner_notes;
+                placeholder-text: "Partner Notes";
+                edited => { root.partner_notes = self.text; }
+            }
+
+            HorizontalBox {
+                spacing: 20px;
+
+                Button {
+                    text: "Save";
+
+                    clicked => {
+                        root.save_requested(
+                            root.fragrance.id,
+                            root.brand,
+                            root.name,
+                            root.rating,
+                            root.concentration,
+                            root.projection,
+                            root.longevity,
+                            root.price,
+                            root.purchase_date,
+                            root.notes,
+                            root.seasons,
+                            root.my_notes,
+                            root.partner_notes,
+                            root.image_path,
+                            root.offset_x / 1px,
+                            root.offset_y / 1px,
+                            root.scale
+                        );
+                    }
+                }
+
+                Button {
+                    text: "Cancel";
+                    clicked => { root.cancel_requested(); }
                 }
             }
         }

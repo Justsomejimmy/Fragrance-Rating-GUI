@@ -2,7 +2,7 @@ use serde::Serialize;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Fragrance {
-    pub id: i32,
+    pub id: i64,
     pub brand: String,
     pub name: String,
     pub concentration: String,
@@ -10,12 +10,15 @@ pub struct Fragrance {
     pub longevity: String,
     pub price: String,
     pub purchase_date: String,
-    pub rating: f32,
+    pub rating: f64,
     pub notes: String,
     pub seasons: String,
     pub image_path: String,
     pub my_notes: String,
     pub partner_notes: String,
+    pub image_offset_x: f64,
+    pub image_offset_y: f64,
+    pub image_scale: f64,
 }
 
 pub struct NewFragrance<'a> {
@@ -32,4 +35,27 @@ pub struct NewFragrance<'a> {
     pub image_path: &'a str,
     pub my_notes: &'a str,
     pub partner_notes: &'a str,
+    pub image_offset_x: f64,
+    pub image_offset_y: f64,
+    pub image_scale: f64,
+}
+
+pub struct UpdateFragrance<'a> {
+    pub id: i64,
+    pub brand: &'a str,
+    pub name: &'a str,
+    pub rating: f64,
+    pub concentration: &'a str,
+    pub projection: &'a str,
+    pub longevity: &'a str,
+    pub price: &'a str,
+    pub purchase_date: &'a str,
+    pub notes: &'a str,
+    pub seasons: &'a str,
+    pub my_notes: &'a str,
+    pub partner_notes: &'a str,
+    pub image_path: &'a str,
+    pub image_offset_x: f64,
+    pub image_offset_y: f64,
+    pub image_scale: f64,
 }

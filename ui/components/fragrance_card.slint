@@ -7,6 +7,9 @@ export component FragranceCard inherits Rectangle {
     in property <string> notes;
     in property <string> seasons;
     in property <image> fragrance-image;
+    in property <float> image_offset_x;
+    in property <float> image_offset_y;
+    in property <float> image_scale: 1.0;
 
     callback card_clicked();
 
@@ -15,7 +18,7 @@ export component FragranceCard inherits Rectangle {
 
     background: #242424;
     border-radius: 12px;
-    
+
     TouchArea {
         clicked => {
             root.card_clicked();
@@ -23,15 +26,22 @@ export component FragranceCard inherits Rectangle {
     }
 
     VerticalBox {
-
         padding: 15px;
         spacing: 10px;
 
-        Image {
-            source: root.fragrance-image;
+        Rectangle {
             width: 180px;
             height: 180px;
-            image-fit: contain;
+            clip: true;
+
+            Image {
+                source: root.fragrance-image;
+                width: 180px * root.image_scale;
+                height: 180px * root.image_scale;
+                x: (180px - self.width) / 2 + root.image_offset_x * 1px;
+                y: (180px - self.height) / 2 + root.image_offset_y * 1px;
+                image-fit: contain;
+            }
         }
 
         Text {

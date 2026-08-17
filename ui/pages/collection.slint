@@ -81,6 +81,9 @@ export component CollectionPage inherits Rectangle {
                         notes: fragrance.notes;
                         seasons: fragrance.seasons;
                         fragrance-image: fragrance.image;
+                        image_offset_x: fragrance.image_offset_x;
+                        image_offset_y: fragrance.image_offset_y;
+                        image_scale: fragrance.image_scale;
 
                         card_clicked => {
                             root.fragrance_clicked(fragrance);

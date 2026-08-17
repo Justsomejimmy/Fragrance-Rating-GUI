@@ -94,53 +94,38 @@ fn main() {
 
     ui.on_save_requested(
         move |
-            id,
-            brand,
-            name,
-            rating,
-            concentration,
-            projection,
-            longevity,
-            price,
-            purchase_date,
-            notes,
-            seasons,
-            my_notes,
-            partner_notes
+            id, brand, name, rating, concentration, projection, longevity,
+            price, purchase_date, notes, seasons, my_notes, partner_notes,
+            image_path, image_offset_x, image_offset_y, image_scale
         | {
             database::fragrance_repository::update(
                 &save_database,
-                id as i64,
-                &brand,
-                &name,
-                rating as f64,
-                &concentration,
-                &projection,
-                &longevity,
-                &price,
-                &purchase_date,
-                &notes,
-                &seasons,
-                &my_notes,
-                &partner_notes,
+                models::fragrance::UpdateFragrance {
+                    id: id as i64,
+                    brand: &brand,
+                    name: &name,
+                    rating: rating as f64,
+                    concentration: &concentration,
+                    projection: &projection,
+                    longevity: &longevity,
+                    price: &price,
+                    purchase_date: &purchase_date,
+                    notes: &notes,
+                    seasons: &seasons,
+                    my_notes: &my_notes,
+                    partner_notes: &partner_notes,
+                    image_path: &image_path,
+                    image_offset_x: image_offset_x as f64,
+                    image_offset_y: image_offset_y as f64,
+                    image_scale: image_scale as f64,
+                },
             );
 
-            // Refresh the collection from SQLite
             if let Some(ui) = save_ui.upgrade() {
                 let search_text = save_search.borrow().clone();
                 let sort_option = save_sort.borrow().clone();
-
-                let rows = load_rows(
-                    &save_database,
-                    &sort_option,
-                    &search_text
-                );
-
-                ui.set_rows(
-                    ModelRc::new(
-                        VecModel::from(rows)
-                    )
-                );
+                let rows = load_rows(&save_database, &sort_option, &search_text);
+                ui.set_rows(ModelRc::new(VecModel::from(rows)));
             }
 
             println!("Updated fragrance: {}", name);
@@ -206,6 +191,9 @@ fn main() {
                     image_path: &image_path,
                     my_notes: &my_notes,
                     partner_notes: &partner_notes,
+                    image_offset_x: 0.0,
+                    image_offset_y: 0.0,
+                    image_scale: 1.0,
                 },
             );
             
@@ -260,6 +248,32 @@ fn main() {
             }
 
             println!("Deleted fragrance with ID: {}", id);
+        }
+    );
+
+    let edit_image_ui = ui.as_weak();
+
+    ui.on_choose_image_requested_edit(
+        move || {
+            if let Some(path) = rfd::FileDialog::new()
+                .add_filter("Images", &["png", "jpg", "jpeg", "webp"])
+                .pick_file()
+            {
+                let path_string = path.to_string_lossy().to_string();
+
+                let picture = slint::Image::load_from_path(&path)
+                    .unwrap_or_default();
+
+                return ImageSelection {
+                    path: path_string.into(),
+                    picture,
+                };
+            }
+
+            ImageSelection {
+                path: "".into(),
+                picture: Image::default(),
+            }
         }
     );
 
@@ -356,7 +370,7 @@ fn load_rows(database: &rusqlite::Connection, sort_option: &str, search_text: &s
             };
 
             FragranceData {
-                id: f.id,
+                id: f.id as i32,
                 brand: f.brand.clone().into(),
                 name: f.name.clone().into(),
                 concentration: f.concentration.clone().into(),
@@ -364,12 +378,16 @@ fn load_rows(database: &rusqlite::Connection, sort_option: &str, search_text: &s
                 longevity: f.longevity.clone().into(),
                 price: f.price.clone().into(),
                 purchase_date: f.purchase_date.clone().into(),
-                rating: f.rating,
+                rating: f.rating as f32,
                 notes: f.notes.clone().into(),
                 seasons: f.seasons.clone().into(),
                 image,
                 my_notes: f.my_notes.clone().into(),
                 partner_notes: f.partner_notes.clone().into(),
+                image_path: f.image_path.clone().into(),
+                image_offset_x: f.image_offset_x as f32,
+                image_offset_y: f.image_offset_y as f32,
+                image_scale: f.image_scale as f32,
             }
         })
         .collect::<Vec<_>>();
