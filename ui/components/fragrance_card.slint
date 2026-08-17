@@ -27,20 +27,20 @@ export component FragranceCard inherits Rectangle {
     }
 
     VerticalBox {
-        padding: 15px;
-        spacing: 10px;
+        padding: 12px;
+        spacing: 6px;
 
         Rectangle {
-            width: 180px;
-            height: 180px;
+            width: 140px;
+            height: 140px;
             clip: true;
 
             Image {
                 source: root.fragrance-image;
-                width: 180px * root.image_scale;
-                height: 180px * root.image_scale;
-                x: (180px - self.width) / 2 + root.image_offset_x * 1px;
-                y: (180px - self.height) / 2 + root.image_offset_y * 1px;
+                width: 140px * root.image_scale;
+                height: 140px * root.image_scale;
+                x: (140px - self.width) / 2 + root.image_offset_x * 1px;
+                y: (140px - self.height) / 2 + root.image_offset_y * 1px;
                 image-fit: contain;
             }
         }
@@ -51,7 +51,7 @@ export component FragranceCard inherits Rectangle {
             Text {
                 text: brand + " - " + name;
                 color: white;
-                font-size: 18px;
+                font-size: 16px;
                 wrap: word-wrap;
                 horizontal-stretch: 1;
             }
@@ -59,7 +59,7 @@ export component FragranceCard inherits Rectangle {
             Text {
                 text: category;
                 color: #66aaff;
-                font-size: 12px;
+                font-size: 11px;
                 vertical-alignment: center;
             }
         }
@@ -67,17 +67,21 @@ export component FragranceCard inherits Rectangle {
         Text {
             text: "⭐ " + rating;
             color: white;
+            font-size: 13px;
         }
 
         Text {
             text: notes;
             color: #aaaaaa;
+            font-size: 12px;
             wrap: word-wrap;
+            overflow: elide;
         }
 
         Text {
             text: seasons;
             color: #aaaaaa;
+            font-size: 12px;
         }
     }
 }
