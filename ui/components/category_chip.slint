@@ -1,0 +1,28 @@
+import { HorizontalBox } from "std-widgets.slint";
+
+export component CategoryChip inherits Rectangle {
+    in property <string> label;
+    in property <bool> selected;
+
+    callback selected_requested();
+
+    height: 36px;
+    padding: 10px;
+    border-radius: 8px;
+    background: root.selected ? #66aaff : #2a2a2a;
+    border-width: 1px;
+    border-color: root.selected ? #66aaff : #444444;
+
+    TouchArea {
+        clicked => {
+            root.selected_requested();
+        }
+    }
+
+    Text {
+        text: root.label;
+        color: root.selected ? #ffffff : #cccccc;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+}

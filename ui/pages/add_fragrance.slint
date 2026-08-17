@@ -1,5 +1,6 @@
 import { VerticalBox, HorizontalBox, Button, LineEdit, Slider, CheckBox, ScrollView } from "std-widgets.slint";
 import { FragranceData, FragranceInput } from "../types.slint";
+import { CategoryChip } from "../components/category_chip.slint";
 
 export component AddFragrance inherits Rectangle {
     callback add_requested(FragranceInput);
@@ -184,22 +185,22 @@ export component AddFragrance inherits Rectangle {
                 HorizontalBox {
                     spacing: 15px;
 
-                    CheckBox {
-                        text: "Perfume";
-                        checked: root.category == "Perfume";
-                        toggled => { root.category = "Perfume"; }
+                    CategoryChip {
+                        label: "Perfume";
+                        selected: root.category == "Perfume";
+                        selected_requested => { root.category = "Perfume"; }
                     }
 
-                    CheckBox {
-                        text: "Unisex";
-                        checked: root.category == "Unisex";
-                        toggled => { root.category = "Unisex"; }
+                    CategoryChip {
+                        label: "Unisex";
+                        selected: root.category == "Unisex";
+                        selected_requested => { root.category = "Unisex"; }
                     }
 
-                    CheckBox {
-                        text: "Cologne";
-                        checked: root.category == "Cologne";
-                        toggled => { root.category = "Cologne"; }
+                    CategoryChip {
+                        label: "Cologne";
+                        selected: root.category == "Cologne";
+                        selected_requested => { root.category = "Cologne"; }
                     }
                 }
             }
