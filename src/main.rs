@@ -250,14 +250,20 @@ fn main() {
 
     ui.on_choose_image_requested(
         move || {
-            if let Some(path) = rfd::FileDialog::new()
-                .add_filter("Images", &["png", "jpg", "jpeg", "webp"])
-                .pick_file()
-            {
+            let mut dialog = rfd::FileDialog::new()
+                .add_filter("Images", &["png", "jpg", "jpeg", "webp"]);
+
+            if let Some(downloads) = dirs::download_dir() {
+                dialog = dialog.set_directory(downloads);
+            }
+
+            if let Some(path) = dialog.pick_file() {
                 println!("Selected image: {}", path.display());
 
                 if let Some(ui) = image_ui.upgrade() {
-                    ui.set_selected_image_path(path.to_string_lossy().to_string().into());
+                    ui.set_selected_image_path(
+                        path.to_string_lossy().to_string().into()
+                    );
                 }
             }
         }
@@ -339,10 +345,14 @@ fn main() {
 
     ui.on_choose_image_requested_edit(
         move || {
-            if let Some(path) = rfd::FileDialog::new()
-                .add_filter("Images", &["png", "jpg", "jpeg", "webp"])
-                .pick_file()
-            {
+            let mut dialog = rfd::FileDialog::new()
+                .add_filter("Images", &["png", "jpg", "jpeg", "webp"]);
+
+            if let Some(downloads) = dirs::download_dir() {
+                dialog = dialog.set_directory(downloads);
+            }
+
+            if let Some(path) = dialog.pick_file() {
                 let path_string = path.to_string_lossy().to_string();
                 let picture = slint::Image::load_from_path(&path).unwrap_or_default();
 
