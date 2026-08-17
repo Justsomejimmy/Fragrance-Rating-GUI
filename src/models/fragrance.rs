@@ -17,3 +17,19 @@ pub struct Fragrance {
     pub my_notes: String,
     pub partner_notes: String,
 }
+
+pub struct NewFragrance<'a> {
+    pub brand: &'a str,
+    pub name: &'a str,
+    pub rating: f64,
+    pub concentration: &'a str,
+    pub projection: &'a str,
+    pub longevity: &'a str,
+    pub price: &'a str,
+    pub purchase_date: &'a str,
+    pub notes: &'a str,
+    pub seasons: &'a str,
+    pub image_path: &'a str,
+    pub my_notes: &'a str,
+    pub partner_notes: &'a str,
+}

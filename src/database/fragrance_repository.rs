@@ -1,5 +1,6 @@
 use rusqlite::Connection;
 use crate::models::fragrance::Fragrance;
+use crate::models::fragrance::NewFragrance;
 
 pub fn get_all(
     conn: &Connection
@@ -114,22 +115,7 @@ pub fn delete(conn: &Connection, id: i32) {
     .unwrap();
 }
 
-pub fn insert(
-    conn: &rusqlite::Connection,
-    brand: &str,
-    name: &str,
-    rating: f64,
-    concentration: &str,
-    projection: &str,
-    longevity: &str,
-    price: &str,
-    purchase_date: &str,
-    notes: &str,
-    seasons: &str,
-    image_path: &str,
-    my_notes: &str,
-    partner_notes: &str,
-) {
+pub fn insert(conn: &rusqlite::Connection, fragrance: NewFragrance) {
     conn.execute(
         "
         INSERT INTO fragrances (
@@ -150,19 +136,19 @@ pub fn insert(
         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)
         ",
         rusqlite::params![
-            brand,
-            name,
-            concentration,
-            projection,
-            longevity,
-            price,
-            purchase_date,
-            rating,
-            notes,
-            seasons,
-            image_path,
-            my_notes,
-            partner_notes
+            fragrance.brand,
+            fragrance.name,
+            fragrance.concentration,
+            fragrance.projection,
+            fragrance.longevity,
+            fragrance.price,
+            fragrance.purchase_date,
+            fragrance.rating,
+            fragrance.notes,
+            fragrance.seasons,
+            fragrance.image_path,
+            fragrance.my_notes,
+            fragrance.partner_notes,
         ],
     )
     .unwrap();

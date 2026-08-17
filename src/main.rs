@@ -192,19 +192,21 @@ fn main() {
         | {
             database::fragrance_repository::insert(
                 &add_database,
-                &brand,
-                &name,
-                rating.parse::<f64>().unwrap_or(0.0),
-                &concentration,
-                &projection,
-                &longevity,
-                &price,
-                &purchase_date,
-                &notes,
-                &seasons,
-                &image_path,
-                &my_notes,
-                &partner_notes,
+                models::fragrance::NewFragrance {
+                    brand: &brand,
+                    name: &name,
+                    rating: rating.parse::<f64>().unwrap_or(0.0),
+                    concentration: &concentration,
+                    projection: &projection,
+                    longevity: &longevity,
+                    price: &price,
+                    purchase_date: &purchase_date,
+                    notes: &notes,
+                    seasons: &seasons,
+                    image_path: &image_path,
+                    my_notes: &my_notes,
+                    partner_notes: &partner_notes,
+                },
             );
             
             let sort_option = add_sort.borrow().clone();
