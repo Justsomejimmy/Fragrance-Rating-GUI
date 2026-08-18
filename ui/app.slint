@@ -6,7 +6,8 @@ import { FragranceDetails } from "./pages/fragrance_details.slint";
 import { AddFragrance } from "./pages/add_fragrance.slint";
 import { EditFragrance } from "./pages/edit_fragrance.slint";
 import { SettingsPage } from "./pages/settings.slint";
-import { Page, FragranceRow, FragranceData, FragranceInput, ImageSelection, DashboardData, AppUser } from "./types.slint";
+import { RankingsPage } from "./pages/rankings.slint";
+import { Page, FragranceRow, FragranceData, FragranceInput, ImageSelection, DashboardData, AppUser, RankingItem } from "./types.slint";
 
 export component MainWindow inherits Window {
     callback save_requested(FragranceInput);
@@ -19,6 +20,7 @@ export component MainWindow inherits Window {
     callback add_user_requested(string);
     callback update_user_requested(int, string);
     callback delete_user_requested(int);
+    callback rank_requested(string, string);
 
     width: 1200px;
     height: 800px;
@@ -27,6 +29,8 @@ export component MainWindow inherits Window {
     in property <[FragranceRow]> rows;
     in property <DashboardData> dashboard;
     in property <[AppUser]> users;
+    in property <[string]> user_names;
+    in property <[RankingItem]> ranking_items;
     property <FragranceData> selected-fragrance;
     in-out property <string> selected-image-path: "";
     property <string> current-sort: "Rating: High → Low";
@@ -50,6 +54,10 @@ export component MainWindow inherits Window {
 
             settings_requested => {
                 root.current-page = Page.Settings;
+            }
+
+            rankings_requested => {
+                root.current-page = Page.Rankings;
             }
         }
 
@@ -146,6 +154,15 @@ export component MainWindow inherits Window {
 
                 delete_user_requested(id) => {
                     root.delete_user_requested(id);
+                }
+            }
+
+            if root.current-page == Page.Rankings : RankingsPage {
+                ranking_items: root.ranking_items;
+                user_names: root.user_names;
+
+                rank_requested(mode, option) => {
+                    root.rank_requested(mode, option);
                 }
             }
         }

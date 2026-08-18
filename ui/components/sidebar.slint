@@ -5,6 +5,7 @@ export component sidebar inherits Rectangle{
     callback dashboard_requested();
     callback collection_requested();
     callback settings_requested();
+    callback rankings_requested();
 
     width: 280px;
     background: #1e1e1e;
@@ -42,6 +43,9 @@ export component sidebar inherits Rectangle{
 
         Button {
             text: "⭐ Rankings";
+            clicked => {
+                root.rankings_requested();
+            }
         }
 
         Button {

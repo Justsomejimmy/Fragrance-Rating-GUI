@@ -81,6 +81,17 @@ export struct DashboardData {
     top_perfume: [FragranceData],
 }
 
+export struct RankingItem {
+    id: int,
+    brand: string,
+    name: string,
+    image: image,
+    image_offset_x: float,
+    image_offset_y: float,
+    image_scale: float,
+    display_rating: float,
+}
+
 export enum Page {
     Collection,
     Details,
@@ -88,4 +99,5 @@ export enum Page {
     Add,
     Dashboard,
     Settings,
+    Rankings,
 }

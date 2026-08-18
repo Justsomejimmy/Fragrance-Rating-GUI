@@ -1,0 +1,159 @@
+import { VerticalBox, HorizontalBox, ScrollView, ComboBox } from "std-widgets.slint";
+import { RankingItem } from "../types.slint";
+
+export component RankingsPage inherits Rectangle {
+    in property <[RankingItem]> ranking_items;
+    in property <[string]> user_names;
+
+    callback rank_requested(string, string);
+
+    property <string> mode: "Overall";
+    property <string> season_option: "Spring";
+    property <string> category_option: "Perfume";
+    property <string> user_option: "";
+
+    property <length> bar_max_width: 300px;
+
+    background: #181818;
+
+    VerticalBox {
+        padding: 30px;
+        spacing: 20px;
+
+        Text {
+            text: "Rankings";
+            font-size: 40px;
+            color: white;
+        }
+
+        HorizontalBox {
+            spacing: 15px;
+
+            ComboBox {
+                width: 180px;
+                model: ["Overall", "Season", "Category", "Rating by User"];
+                current-value <=> root.mode;
+
+                selected => {
+                    if (root.mode == "Overall") {
+                        root.rank_requested("Overall", "");
+                    } else if (root.mode == "Season") {
+                        root.rank_requested("Season", root.season_option);
+                    } else if (root.mode == "Category") {
+                        root.rank_requested("Category", root.category_option);
+                    } else if (root.mode == "Rating by User") {
+                        if (root.user_names.length > 0) {
+                            root.user_option = root.user_names[0];
+                            root.rank_requested("User", root.user_option);
+                        }
+                    }
+                }
+            }
+
+            if root.mode == "Season" : ComboBox {
+                width: 160px;
+                model: ["Spring", "Summer", "Fall", "Winter"];
+                current-value <=> root.season_option;
+
+                selected => {
+                    root.rank_requested("Season", root.season_option);
+                }
+            }
+
+            if root.mode == "Category" : ComboBox {
+                width: 160px;
+                model: ["Perfume", "Unisex", "Cologne"];
+                current-value <=> root.category_option;
+
+                selected => {
+                    root.rank_requested("Category", root.category_option);
+                }
+            }
+
+            if root.mode == "Rating by User" : ComboBox {
+                width: 160px;
+                model: root.user_names;
+                current-value <=> root.user_option;
+
+                selected => {
+                    root.rank_requested("User", root.user_option);
+                }
+            }
+        }
+
+        ScrollView {
+            vertical-stretch: 1;
+
+            VerticalBox {
+                spacing: 12px;
+
+                for item[i] in root.ranking_items : HorizontalBox {
+                    spacing: 15px;
+                    height: 70px;
+
+                    Text {
+                        text: (i + 1) + ".";
+                        color: white;
+                        font-size: 20px;
+                        width: 35px;
+                        vertical-alignment: center;
+                    }
+
+                    Rectangle {
+                        width: 60px;
+                        height: 60px;
+                        clip: true;
+                        border-radius: 6px;
+                        background: #000000;
+
+                        Image {
+                            source: item.image;
+                            width: 60px * item.image_scale;
+                            height: 60px * item.image_scale;
+                            x: (60px - self.width) / 2 + item.image_offset_x * 1px;
+                            y: (60px - self.height) / 2 + item.image_offset_y * 1px;
+                            image-fit: contain;
+                        }
+                    }
+
+                    Text {
+                        text: item.brand + " - " + item.name;
+                        color: white;
+                        font-size: 16px;
+                        wrap: word-wrap;
+                        horizontal-stretch: 1;
+                        vertical-alignment: center;
+                    }
+
+                    Rectangle {
+                        width: root.bar_max_width;
+                        height: 20px;
+                        background: #2a2a2a;
+                        border-radius: 4px;
+
+                        Rectangle {
+                            width: root.bar_max_width * (item.display_rating / 10);
+                            height: 20px;
+                            background: #66aaff;
+                            border-radius: 4px;
+                        }
+                    }
+
+                    Text {
+                        text: item.display_rating;
+                        color: white;
+                        font-size: 14px;
+                        width: 40px;
+                        vertical-alignment: center;
+                    }
+                }
+
+                if root.ranking_items.length == 0 : Text {
+                    text: "No fragrances to rank yet.";
+                    color: #aaaaaa;
+                    font-size: 16px;
+                }
+            }
+        }
+    }
+}
