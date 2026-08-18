@@ -1,13 +1,15 @@
 import { VerticalBox, HorizontalBox, ScrollView, ComboBox, LineEdit, Button } from "std-widgets.slint";
 import { FragranceCard } from "../components/fragrance_card.slint";
 import { FragranceData, FragranceRow } from "../types.slint";
+import { AddFragranceCard } from "../components/add_fragrance_card.slint";
 
 export component CollectionPage inherits Rectangle {
     in-out property <string> sort-option: "Rating: High → Low";
     in-out property <string> search-text: "";
     in property <image> fragrance-image;
     in property <[FragranceRow]> rows;
-
+    
+    callback add_requested();
     callback fragrance_clicked(FragranceData);
     callback search_requested(string);
     callback sort_requested(string);
@@ -71,8 +73,24 @@ export component CollectionPage inherits Rectangle {
             VerticalBox {
                 spacing: 20px;
 
-                for row in root.rows : HorizontalBox {
+                if root.rows.length == 0 : HorizontalBox {
                     spacing: 20px;
+
+                    AddFragranceCard {
+                        card_clicked => {
+                            root.add_requested();
+                        }
+                    }
+                }
+
+                for row[i] in root.rows : HorizontalBox {
+                    spacing: 20px;
+
+                    if i == 0 : AddFragranceCard {
+                        card_clicked => {
+                            root.add_requested();
+                        }
+                    }
 
                     for fragrance in row.fragrances : FragranceCard {
                         brand: fragrance.brand;

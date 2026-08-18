@@ -1,0 +1,27 @@
+import { VerticalBox } from "std-widgets.slint";
+
+export component AddFragranceCard inherits Rectangle {
+    callback card_clicked();
+
+    width: 220px;
+    height: 320px;
+
+    background: #242424;
+    border-radius: 12px;
+    border-width: 2px;
+    border-color: #444444;
+
+    TouchArea {
+        clicked => {
+            root.card_clicked();
+        }
+    }
+
+    Text {
+        text: "+";
+        color: #66aaff;
+        font-size: 64px;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+}

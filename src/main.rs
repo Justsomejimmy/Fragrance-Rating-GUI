@@ -89,8 +89,21 @@ fn to_fragrance_data(
     }
 }
 
-fn group_into_rows<T: Clone>(items: &[T], row_size: usize) -> Vec<Vec<T>> {
-    items.chunks(row_size).map(|chunk| chunk.to_vec()).collect()
+fn group_into_rows<T: Clone>(items: &[T], row_size: usize, reserved_first: usize) -> Vec<Vec<T>> {
+    if items.is_empty() {
+        return Vec::new();
+    }
+
+    let mut rows = Vec::new();
+
+    let first_size = row_size.saturating_sub(reserved_first).max(1).min(items.len());
+    rows.push(items[0..first_size].to_vec());
+
+    for chunk in items[first_size..].chunks(row_size) {
+        rows.push(chunk.to_vec());
+    }
+
+    rows
 }
 
 fn load_rows(database: &rusqlite::Connection, sort_option: &str, search_text: &str, wishlist: bool) -> Vec<FragranceRow> {
@@ -129,7 +142,7 @@ fn load_rows(database: &rusqlite::Connection, sort_option: &str, search_text: &s
         _ => {}
     }
 
-    group_into_rows(&ui_fragrances, 3)
+    group_into_rows(&ui_fragrances, 3, 1)
         .iter()
         .map(|row| FragranceRow {
             fragrances: ModelRc::new(VecModel::from(row.clone())),

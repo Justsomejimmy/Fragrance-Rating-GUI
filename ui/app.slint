@@ -95,6 +95,10 @@ export component MainWindow inherits Window {
                 search_requested(text) => {
                     root.search_collection(text);
                 }
+
+                add_requested => {
+                    root.current-page = Page.Add;
+                }
             }
 
             if root.current-page == Page.Wishlist : WishlistPage {
@@ -103,6 +107,10 @@ export component MainWindow inherits Window {
                 fragrance_clicked(fragrance) => {
                     root.selected-fragrance = fragrance;
                     root.current-page = Page.Details;
+                }
+
+                add_requested => {
+                    root.current-page = Page.Add;
                 }
             }
 

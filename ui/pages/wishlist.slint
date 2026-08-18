@@ -1,11 +1,13 @@
 import { VerticalBox, HorizontalBox, ScrollView } from "std-widgets.slint";
 import { FragranceCard } from "../components/fragrance_card.slint";
 import { FragranceData, FragranceRow } from "../types.slint";
+import { AddFragranceCard } from "../components/add_fragrance_card.slint";
 
 export component WishlistPage inherits Rectangle {
     in property <[FragranceRow]> rows;
 
     callback fragrance_clicked(FragranceData);
+    callback add_requested();
 
     background: #181818;
 
@@ -25,8 +27,24 @@ export component WishlistPage inherits Rectangle {
             VerticalBox {
                 spacing: 20px;
 
-                for row in root.rows : HorizontalBox {
+                if root.rows.length == 0 : HorizontalBox {
                     spacing: 20px;
+
+                    AddFragranceCard {
+                        card_clicked => {
+                            root.add_requested();
+                        }
+                    }
+                }
+
+                for row[i] in root.rows : HorizontalBox {
+                    spacing: 20px;
+
+                    if i == 0 : AddFragranceCard {
+                        card_clicked => {
+                            root.add_requested();
+                        }
+                    }
 
                     for fragrance in row.fragrances : FragranceCard {
                         brand: fragrance.brand;
