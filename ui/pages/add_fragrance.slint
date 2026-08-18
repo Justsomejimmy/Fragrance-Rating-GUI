@@ -1,4 +1,4 @@
-import { VerticalBox, HorizontalBox, ScrollView, Button, LineEdit, CheckBox } from "std-widgets.slint";
+import { VerticalBox, HorizontalBox, Button, LineEdit, CheckBox, ScrollView } from "std-widgets.slint";
 import { FragranceData, FragranceInput } from "../types.slint";
 import { CategoryChip } from "../components/category_chip.slint";
 
@@ -22,6 +22,7 @@ export component AddFragrance inherits Rectangle {
     property <string> category: "Perfume";
     property <string> my_notes;
     property <string> partner_notes;
+    property <string> list_choice: "Collection";
 
     in-out property <string> image_path;
 
@@ -162,6 +163,32 @@ export component AddFragrance inherits Rectangle {
                 }
             }
 
+            VerticalBox {
+                spacing: 5px;
+
+                Text {
+                    text: "Add To";
+                    color: white;
+                    font-size: 16px;
+                }
+
+                HorizontalBox {
+                    spacing: 15px;
+
+                    CategoryChip {
+                        label: "Collection";
+                        selected: root.list_choice == "Collection";
+                        selected_requested => { root.list_choice = "Collection"; }
+                    }
+
+                    CategoryChip {
+                        label: "Wishlist";
+                        selected: root.list_choice == "Wishlist";
+                        selected_requested => { root.list_choice = "Wishlist"; }
+                    }
+                }
+            }
+
             LineEdit {
                 placeholder-text: "My Notes";
                 text <=> root.my_notes;
@@ -201,6 +228,7 @@ export component AddFragrance inherits Rectangle {
                             image_offset_y: 0,
                             image_scale: 1.0,
                             ratings: [],
+                            send_to_wishlist: root.list_choice == "Wishlist",
                         });
                     }
                 }

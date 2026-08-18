@@ -92,13 +92,14 @@ fn group_into_rows<T: Clone>(items: &[T], row_size: usize) -> Vec<Vec<T>> {
     items.chunks(row_size).map(|chunk| chunk.to_vec()).collect()
 }
 
-fn load_rows(database: &rusqlite::Connection, sort_option: &str, search_text: &str) -> Vec<FragranceRow> {
+fn load_rows(database: &rusqlite::Connection, sort_option: &str, search_text: &str, wishlist: bool) -> Vec<FragranceRow> {
     let users = database::user_repository::get_all(database);
     let ratings_map = build_ratings_map(database);
     let fragrances = database::fragrance_repository::get_all(database);
 
     let mut ui_fragrances: Vec<FragranceData> = fragrances
         .iter()
+        .filter(|f| f.is_wishlist == wishlist)
         .map(|f| to_fragrance_data(f, &users, &ratings_map))
         .collect();
 
@@ -139,6 +140,7 @@ fn build_dashboard(database: &rusqlite::Connection) -> DashboardData {
     let users = database::user_repository::get_all(database);
     let ratings_map = build_ratings_map(database);
     let fragrances = database::fragrance_repository::get_all(database);
+    let fragrances: Vec<_> = fragrances.into_iter().filter(|f| !f.is_wishlist).collect();
 
     let ui_fragrances: Vec<FragranceData> = fragrances
         .iter()
@@ -243,6 +245,7 @@ fn build_rankings(database: &rusqlite::Connection, mode: &str, option: &str) -> 
     let users = database::user_repository::get_all(database);
     let ratings_map = build_ratings_map(database);
     let fragrances = database::fragrance_repository::get_all(database);
+    let fragrances: Vec<_> = fragrances.into_iter().filter(|f| !f.is_wishlist).collect();
 
     let empty_ratings: HashMap<i64, f64> = HashMap::new();
 
@@ -328,8 +331,12 @@ fn refresh_all(
     rank_mode: &str,
     rank_option: &str,
 ) {
-    let rows = load_rows(database, sort_option, search_text);
+    let rows = load_rows(database, sort_option, search_text, false);
     ui.set_rows(ModelRc::new(VecModel::from(rows)));
+
+    let wishlist_rows = load_rows(database, "Rating: High → Low", "", true);
+    ui.set_wishlist_rows(ModelRc::new(VecModel::from(wishlist_rows)));
+
     ui.set_dashboard(build_dashboard(database));
 
     let (users_model, names_model) = refresh_users_models(database);
@@ -510,6 +517,7 @@ fn main() {
                     image_offset_y: input.image_offset_y as f64,
                     image_scale: input.image_scale as f64,
                     category: &input.category,
+                    is_wishlist: input.send_to_wishlist,
                 },
             );
 

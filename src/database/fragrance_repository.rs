@@ -8,12 +8,14 @@ pub fn get_all(conn: &Connection) -> Vec<Fragrance> {
             id, brand, name, concentration, projection, longevity,
             price, purchase_date, notes, seasons, image_path,
             my_notes, partner_notes, image_offset_x, image_offset_y,
-            image_scale, category
+            image_scale, category, is_wishlist
         FROM fragrances
         "
     ).unwrap();
 
     let fragrances = stmt.query_map([], |row| {
+        let is_wishlist_int: i64 = row.get(17)?;
+
         Ok(Fragrance {
             id: row.get(0)?,
             brand: row.get(1)?,
@@ -32,6 +34,7 @@ pub fn get_all(conn: &Connection) -> Vec<Fragrance> {
             image_offset_y: row.get(14)?,
             image_scale: row.get(15)?,
             category: row.get(16)?,
+            is_wishlist: is_wishlist_int != 0,
         })
     }).unwrap();
 
@@ -44,9 +47,9 @@ pub fn insert(conn: &Connection, fragrance: NewFragrance) {
         INSERT INTO fragrances (
             brand, name, concentration, projection, longevity, price,
             purchase_date, notes, seasons, image_path, my_notes,
-            partner_notes, image_offset_x, image_offset_y, image_scale, category
+            partner_notes, image_offset_x, image_offset_y, image_scale, category, is_wishlist
         )
-        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17)
         ",
         rusqlite::params![
             fragrance.brand,
@@ -65,6 +68,7 @@ pub fn insert(conn: &Connection, fragrance: NewFragrance) {
             fragrance.image_offset_y,
             fragrance.image_scale,
             fragrance.category,
+            fragrance.is_wishlist as i64,
         ],
     ).unwrap();
 }

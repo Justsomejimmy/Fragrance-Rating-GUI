@@ -20,7 +20,8 @@ pub fn create_tables(conn: &Connection) {
             image_offset_x REAL NOT NULL DEFAULT 0,
             image_offset_y REAL NOT NULL DEFAULT 0,
             image_scale REAL NOT NULL DEFAULT 1.0,
-            category TEXT NOT NULL DEFAULT 'Perfume'
+            category TEXT NOT NULL DEFAULT 'Perfume',
+            is_wishlist INTEGER NOT NULL DEFAULT 0
         )
         ",
         [],
@@ -53,7 +54,7 @@ pub fn create_tables(conn: &Connection) {
     let _ = conn.execute("ALTER TABLE fragrances ADD COLUMN image_offset_y REAL NOT NULL DEFAULT 0", []);
     let _ = conn.execute("ALTER TABLE fragrances ADD COLUMN image_scale REAL NOT NULL DEFAULT 1.0", []);
     let _ = conn.execute("ALTER TABLE fragrances ADD COLUMN category TEXT NOT NULL DEFAULT 'Perfume'", []);
-    // Per your choice to discard the old single rating when switching to per-user ratings:
+    let _ = conn.execute("ALTER TABLE fragrances ADD COLUMN is_wishlist INTEGER NOT NULL DEFAULT 0", []);
     let _ = conn.execute("ALTER TABLE fragrances DROP COLUMN rating", []);
 }
 
@@ -68,13 +69,13 @@ pub fn seed_database(conn: &Connection) {
             INSERT INTO fragrances (
                 brand, name, concentration, projection, longevity, price,
                 purchase_date, notes, seasons, image_path, my_notes,
-                partner_notes, image_offset_x, image_offset_y, image_scale, category
+                partner_notes, image_offset_x, image_offset_y, image_scale, category, is_wishlist
             )
             VALUES
             (
                 'Chanel', 'Bleu de Chanel', 'EDP', 'Moderate', 'Long', '$120',
                 '2025-08-01', 'Grapefruit,Cedar,Incense', 'Summer,Fall',
-                '', 'Excellent evening fragrance.', 'Fresh and classy.', 0, 0, 1.0, 'Cologne'
+                '', 'Excellent evening fragrance.', 'Fresh and classy.', 0, 0, 1.0, 'Cologne', 0
             )
             ",
             [],

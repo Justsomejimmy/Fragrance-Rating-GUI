@@ -1,0 +1,57 @@
+import { VerticalBox, HorizontalBox, ScrollView } from "std-widgets.slint";
+import { FragranceCard } from "../components/fragrance_card.slint";
+import { FragranceData, FragranceRow } from "../types.slint";
+
+export component WishlistPage inherits Rectangle {
+    in property <[FragranceRow]> rows;
+
+    callback fragrance_clicked(FragranceData);
+
+    background: #181818;
+
+    VerticalBox {
+        padding: 30px;
+        spacing: 20px;
+
+        Text {
+            text: "Wishlist";
+            font-size: 40px;
+            color: white;
+        }
+
+        ScrollView {
+            vertical-stretch: 1;
+
+            VerticalBox {
+                spacing: 20px;
+
+                for row in root.rows : HorizontalBox {
+                    spacing: 20px;
+
+                    for fragrance in row.fragrances : FragranceCard {
+                        brand: fragrance.brand;
+                        name: fragrance.name;
+                        rating: fragrance.rating;
+                        notes: fragrance.notes;
+                        seasons: fragrance.seasons;
+                        category: fragrance.category;
+                        fragrance-image: fragrance.image;
+                        image_offset_x: fragrance.image_offset_x;
+                        image_offset_y: fragrance.image_offset_y;
+                        image_scale: fragrance.image_scale;
+
+                        card_clicked => {
+                            root.fragrance_clicked(fragrance);
+                        }
+                    }
+                }
+
+                if root.rows.length == 0 : Text {
+                    text: "Your wishlist is empty.";
+                    color: #aaaaaa;
+                    font-size: 16px;
+                }
+            }
+        }
+    }
+}

@@ -16,6 +16,7 @@ pub struct Fragrance {
     pub image_offset_y: f64,
     pub image_scale: f64,
     pub category: String,
+    pub is_wishlist: bool,
 }
 
 pub struct NewFragrance<'a> {
@@ -35,6 +36,7 @@ pub struct NewFragrance<'a> {
     pub image_offset_y: f64,
     pub image_scale: f64,
     pub category: &'a str,
+    pub is_wishlist: bool,
 }
 
 pub struct UpdateFragrance<'a> {
