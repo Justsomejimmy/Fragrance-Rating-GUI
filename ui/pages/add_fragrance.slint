@@ -1,8 +1,10 @@
-import { VerticalBox, HorizontalBox, Button, LineEdit, CheckBox, ScrollView } from "std-widgets.slint";
-import { FragranceData, FragranceInput } from "../types.slint";
+import { VerticalBox, HorizontalBox, Button, LineEdit, CheckBox, ScrollView, Slider } from "std-widgets.slint";
+import { FragranceData, FragranceInput, UserRating } from "../types.slint";
 import { CategoryChip } from "../components/category_chip.slint";
 
 export component AddFragrance inherits Rectangle {
+    in property <[UserRating]> initial_ratings;
+
     callback add_requested(FragranceInput);
     callback cancel_requested();
     callback choose_image_requested();
@@ -23,8 +25,13 @@ export component AddFragrance inherits Rectangle {
     property <string> my_notes;
     property <string> partner_notes;
     property <string> list_choice: "Collection";
+    property <[UserRating]> ratings;
 
     in-out property <string> image_path;
+
+    init => {
+        root.ratings = root.initial_ratings;
+    }
 
     background: #181818;
 
@@ -65,6 +72,58 @@ export component AddFragrance inherits Rectangle {
             LineEdit {
                 placeholder-text: "Name";
                 text <=> root.name;
+            }
+
+            VerticalBox {
+                spacing: 5px;
+
+                Text {
+                    text: "Ratings";
+                    color: white;
+                    font-size: 16px;
+                }
+
+                for entry[i] in root.ratings : VerticalBox {
+                    spacing: 3px;
+
+                    HorizontalBox {
+                        spacing: 10px;
+
+                        Text {
+                            text: entry.user_name + ":";
+                            color: white;
+                            font-size: 14px;
+                            vertical-alignment: center;
+                            width: 100px;
+                        }
+
+                        LineEdit {
+                            width: 55px;
+                            text: entry.rating;
+
+                            edited => {
+                                root.ratings[i].rating = max(0.0, min(10.0, self.text.to-float()));
+                            }
+                        }
+
+                        Text {
+                            text: "/ 10";
+                            color: white;
+                            font-size: 14px;
+                            vertical-alignment: center;
+                        }
+                    }
+
+                    Slider {
+                        minimum: 0;
+                        maximum: 10;
+                        value: entry.rating;
+
+                        changed(new-value) => {
+                            root.ratings[i].rating = round(new-value * 10) / 10;
+                        }
+                    }
+                }
             }
 
             LineEdit {
@@ -227,7 +286,7 @@ export component AddFragrance inherits Rectangle {
                             image_offset_x: 0,
                             image_offset_y: 0,
                             image_scale: 1.0,
-                            ratings: [],
+                            ratings: root.ratings,
                             send_to_wishlist: root.list_choice == "Wishlist",
                         });
                     }

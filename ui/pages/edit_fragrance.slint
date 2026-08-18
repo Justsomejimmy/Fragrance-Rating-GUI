@@ -18,6 +18,7 @@ export component EditFragrance inherits Rectangle {
     property <bool> season_fall;
     property <bool> season_winter;
     property <string> category;
+    property <bool> is_wishlist;
     property <string> my_notes;
     property <string> partner_notes;
     property <[UserRating]> ratings;
@@ -47,6 +48,7 @@ export component EditFragrance inherits Rectangle {
         root.season_fall = fragrance.season_fall;
         root.season_winter = fragrance.season_winter;
         root.category = fragrance.category == "" ? "Perfume" : fragrance.category;
+        root.is_wishlist = fragrance.is_wishlist;
         root.my_notes = fragrance.my_notes;
         root.partner_notes = fragrance.partner_notes;
         root.ratings = fragrance.ratings;
@@ -325,6 +327,32 @@ export component EditFragrance inherits Rectangle {
                 }
             }
 
+            VerticalBox {
+                spacing: 5px;
+
+                Text {
+                    text: "List";
+                    color: white;
+                    font-size: 16px;
+                }
+
+                HorizontalBox {
+                    spacing: 15px;
+
+                    CategoryChip {
+                        label: "Collection";
+                        selected: !root.is_wishlist;
+                        selected_requested => { root.is_wishlist = false; }
+                    }
+
+                    CategoryChip {
+                        label: "Wishlist";
+                        selected: root.is_wishlist;
+                        selected_requested => { root.is_wishlist = true; }
+                    }
+                }
+            }
+
             LineEdit {
                 text: root.my_notes;
                 placeholder-text: "My Notes";
@@ -366,7 +394,7 @@ export component EditFragrance inherits Rectangle {
                             image_offset_y: root.offset_y / 1px,
                             image_scale: root.scale,
                             ratings: root.ratings,
-                            send_to_wishlist: false,
+                            send_to_wishlist: root.is_wishlist,
                         });
                     }
                 }

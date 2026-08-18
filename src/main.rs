@@ -85,6 +85,7 @@ fn to_fragrance_data(
         season_winter: f.seasons.contains("Winter"),
         category: f.category.clone().into(),
         ratings: ModelRc::new(VecModel::from(ratings)),
+        is_wishlist: f.is_wishlist,
     }
 }
 
@@ -343,6 +344,9 @@ fn refresh_all(
     ui.set_users(users_model);
     ui.set_user_names(names_model);
 
+    let users = database::user_repository::get_all(database);
+    ui.set_initial_ratings(ModelRc::new(VecModel::from(build_initial_ratings(&users))));
+
     let rankings = build_rankings(database, rank_mode, rank_option);
     ui.set_ranking_items(ModelRc::new(VecModel::from(rankings)));
 }
@@ -439,6 +443,7 @@ fn main() {
                     image_offset_y: input.image_offset_y as f64,
                     image_scale: input.image_scale as f64,
                     category: &input.category,
+                    is_wishlist: input.send_to_wishlist,
                 },
             );
 
@@ -498,7 +503,7 @@ fn main() {
                 input.season_winter,
             );
 
-            database::fragrance_repository::insert(
+            let new_id = database::fragrance_repository::insert(
                 &add_database,
                 models::fragrance::NewFragrance {
                     brand: &input.brand,
@@ -520,6 +525,17 @@ fn main() {
                     is_wishlist: input.send_to_wishlist,
                 },
             );
+
+            for i in 0..input.ratings.row_count() {
+                if let Some(user_rating) = input.ratings.row_data(i) {
+                    database::rating_repository::set_rating(
+                        &add_database,
+                        new_id,
+                        user_rating.user_id as i64,
+                        user_rating.rating as f64,
+                    );
+                }
+            }
 
             if let Some(ui) = add_ui.upgrade() {
                 let sort_option = add_sort.borrow().clone();
@@ -662,4 +678,15 @@ fn main() {
     );
 
     ui.run().unwrap();
+}
+
+fn build_initial_ratings(users: &[models::user::User]) -> Vec<UserRating> {
+    users
+        .iter()
+        .map(|u| UserRating {
+            user_id: u.id as i32,
+            user_name: u.name.clone().into(),
+            rating: 0.0,
+        })
+        .collect()
 }

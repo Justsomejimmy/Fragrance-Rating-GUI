@@ -41,7 +41,7 @@ pub fn get_all(conn: &Connection) -> Vec<Fragrance> {
     fragrances.map(|f| f.unwrap()).collect()
 }
 
-pub fn insert(conn: &Connection, fragrance: NewFragrance) {
+pub fn insert(conn: &Connection, fragrance: NewFragrance) -> i64 {
     conn.execute(
         "
         INSERT INTO fragrances (
@@ -71,6 +71,8 @@ pub fn insert(conn: &Connection, fragrance: NewFragrance) {
             fragrance.is_wishlist as i64,
         ],
     ).unwrap();
+
+    conn.last_insert_rowid()
 }
 
 pub fn update(conn: &Connection, fragrance: UpdateFragrance) {
@@ -81,8 +83,9 @@ pub fn update(conn: &Connection, fragrance: UpdateFragrance) {
             brand = ?1, name = ?2, concentration = ?3, projection = ?4,
             longevity = ?5, price = ?6, purchase_date = ?7, notes = ?8,
             seasons = ?9, my_notes = ?10, partner_notes = ?11, image_path = ?12,
-            image_offset_x = ?13, image_offset_y = ?14, image_scale = ?15, category = ?16
-        WHERE id = ?17
+            image_offset_x = ?13, image_offset_y = ?14, image_scale = ?15, category = ?16,
+            is_wishlist = ?17
+        WHERE id = ?18
         ",
         rusqlite::params![
             fragrance.brand,
@@ -101,6 +104,7 @@ pub fn update(conn: &Connection, fragrance: UpdateFragrance) {
             fragrance.image_offset_y,
             fragrance.image_scale,
             fragrance.category,
+            fragrance.is_wishlist as i64,
             fragrance.id,
         ],
     ).unwrap();
