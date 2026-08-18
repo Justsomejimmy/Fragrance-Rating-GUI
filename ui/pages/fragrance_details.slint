@@ -1,6 +1,7 @@
 import { VerticalBox, HorizontalBox, Button } from "std-widgets.slint";
 import { FragranceData } from "../types.slint";
 
+
 export component FragranceDetails inherits Rectangle {
     in property <FragranceData> fragrance;
     property <bool> show-delete-confirmation: false;
@@ -51,8 +52,14 @@ export component FragranceDetails inherits Rectangle {
         }
 
         Text {
-            text: "Rating: ⭐ " + fragrance.rating;
+            text: "Average Rating: ⭐ " + fragrance.rating;
             color: white;
+        }
+
+        for entry in fragrance.ratings : Text {
+            text: "  " + entry.user_name + ": ⭐ " + entry.rating;
+            color: #aaaaaa;
+            font-size: 13px;
         }
 
         Text {

@@ -5,7 +5,8 @@ import { CollectionPage } from "./pages/collection.slint";
 import { FragranceDetails } from "./pages/fragrance_details.slint";
 import { AddFragrance } from "./pages/add_fragrance.slint";
 import { EditFragrance } from "./pages/edit_fragrance.slint";
-import { Page, FragranceRow, FragranceData, FragranceInput, ImageSelection, DashboardData } from "./types.slint";
+import { SettingsPage } from "./pages/settings.slint";
+import { Page, FragranceRow, FragranceData, FragranceInput, ImageSelection, DashboardData, AppUser } from "./types.slint";
 
 export component MainWindow inherits Window {
     callback save_requested(FragranceInput);
@@ -15,6 +16,9 @@ export component MainWindow inherits Window {
     callback search_collection(string);
     callback choose_image_requested();
     callback choose_image_requested_edit() -> ImageSelection;
+    callback add_user_requested(string);
+    callback update_user_requested(int, string);
+    callback delete_user_requested(int);
 
     width: 1200px;
     height: 800px;
@@ -22,6 +26,7 @@ export component MainWindow inherits Window {
     in-out property <Page> current-page: Page.Dashboard;
     in property <[FragranceRow]> rows;
     in property <DashboardData> dashboard;
+    in property <[AppUser]> users;
     property <FragranceData> selected-fragrance;
     in-out property <string> selected-image-path: "";
     property <string> current-sort: "Rating: High → Low";
@@ -34,13 +39,17 @@ export component MainWindow inherits Window {
             dashboard_requested => {
                 root.current-page = Page.Dashboard;
             }
-            
+
             collection_requested => {
                 root.current-page = Page.Collection;
             }
 
             add_requested => {
                 root.current-page = Page.Add;
+            }
+
+            settings_requested => {
+                root.current-page = Page.Settings;
             }
         }
 
@@ -102,32 +111,6 @@ export component MainWindow inherits Window {
                 }
 
                 save_requested(input) => {
-                    root.selected-fragrance = {
-                        id: input.id,
-                        brand: input.brand,
-                        name: input.name,
-                        concentration: input.concentration,
-                        projection: input.projection,
-                        longevity: input.longevity,
-                        price: input.price,
-                        purchase_date: input.purchase_date,
-                        rating: input.rating,
-                        notes: input.notes,
-                        seasons: root.selected-fragrance.seasons,
-                        image: root.selected-fragrance.image,
-                        my_notes: input.my_notes,
-                        partner_notes: input.partner_notes,
-                        image_path: input.image_path,
-                        image_offset_x: input.image_offset_x,
-                        image_offset_y: input.image_offset_y,
-                        image_scale: input.image_scale,
-                        season_spring: input.season_spring,
-                        season_summer: input.season_summer,
-                        season_fall: input.season_fall,
-                        season_winter: input.season_winter,
-                        category: input.category,
-                    };
-
                     root.save_requested(input);
                     root.current-page = Page.Details;
                 }
@@ -147,6 +130,22 @@ export component MainWindow inherits Window {
 
                 cancel_requested => {
                     root.current-page = Page.Collection;
+                }
+            }
+
+            if root.current-page == Page.Settings : SettingsPage {
+                users: root.users;
+
+                add_user_requested(name) => {
+                    root.add_user_requested(name);
+                }
+
+                update_user_requested(id, name) => {
+                    root.update_user_requested(id, name);
+                }
+
+                delete_user_requested(id) => {
+                    root.delete_user_requested(id);
                 }
             }
         }

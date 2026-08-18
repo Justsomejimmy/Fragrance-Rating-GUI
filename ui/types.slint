@@ -1,3 +1,14 @@
+export struct UserRating {
+    user_id: int,
+    user_name: string,
+    rating: float,
+}
+
+export struct AppUser {
+    id: int,
+    name: string,
+}
+
 export struct FragranceData {
     id: int,
     brand: string,
@@ -22,13 +33,13 @@ export struct FragranceData {
     season_fall: bool,
     season_winter: bool,
     category: string,
+    ratings: [UserRating],
 }
 
 export struct FragranceInput {
     id: int,
     brand: string,
     name: string,
-    rating: float,
     concentration: string,
     projection: string,
     longevity: string,
@@ -46,6 +57,7 @@ export struct FragranceInput {
     image_offset_x: float,
     image_offset_y: float,
     image_scale: float,
+    ratings: [UserRating],
 }
 
 export struct ImageSelection {
@@ -75,4 +87,5 @@ export enum Page {
     Edit,
     Add,
     Dashboard,
+    Settings,
 }

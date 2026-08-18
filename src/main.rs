@@ -2,7 +2,8 @@ mod database;
 mod models;
 slint::include_modules!();
 use std::rc::Rc;
-use slint::{Image, ModelRc, VecModel};
+use std::collections::HashMap;
+use slint::{Image, Model, ModelRc, VecModel};
 
 fn join_seasons(spring: bool, summer: bool, fall: bool, winter: bool) -> String {
     let mut parts = Vec::new();
@@ -13,7 +14,22 @@ fn join_seasons(spring: bool, summer: bool, fall: bool, winter: bool) -> String 
     parts.join(",")
 }
 
-fn to_fragrance_data(f: &models::fragrance::Fragrance) -> FragranceData {
+fn build_ratings_map(database: &rusqlite::Connection) -> HashMap<i64, HashMap<i64, f64>> {
+    let all_ratings = database::rating_repository::get_all(database);
+    let mut map: HashMap<i64, HashMap<i64, f64>> = HashMap::new();
+
+    for r in all_ratings {
+        map.entry(r.fragrance_id).or_insert_with(HashMap::new).insert(r.user_id, r.rating);
+    }
+
+    map
+}
+
+fn to_fragrance_data(
+    f: &models::fragrance::Fragrance,
+    users: &[models::user::User],
+    ratings_map: &HashMap<i64, HashMap<i64, f64>>,
+) -> FragranceData {
     let image = if f.image_path.is_empty() {
         Image::default()
     } else {
@@ -26,6 +42,24 @@ fn to_fragrance_data(f: &models::fragrance::Fragrance) -> FragranceData {
         }
     };
 
+    let empty_ratings: HashMap<i64, f64> = HashMap::new();
+    let fragrance_ratings = ratings_map.get(&f.id).unwrap_or(&empty_ratings);
+
+    let ratings: Vec<UserRating> = users
+        .iter()
+        .map(|u| UserRating {
+            user_id: u.id as i32,
+            user_name: u.name.clone().into(),
+            rating: *fragrance_ratings.get(&u.id).unwrap_or(&0.0) as f32,
+        })
+        .collect();
+
+    let average_rating = if fragrance_ratings.is_empty() {
+        0.0
+    } else {
+        (fragrance_ratings.values().sum::<f64>() / fragrance_ratings.len() as f64) as f32
+    };
+
     FragranceData {
         id: f.id as i32,
         brand: f.brand.clone().into(),
@@ -35,7 +69,7 @@ fn to_fragrance_data(f: &models::fragrance::Fragrance) -> FragranceData {
         longevity: f.longevity.clone().into(),
         price: f.price.clone().into(),
         purchase_date: f.purchase_date.clone().into(),
-        rating: f.rating as f32,
+        rating: average_rating,
         notes: f.notes.clone().into(),
         seasons: f.seasons.clone().into(),
         image,
@@ -50,13 +84,68 @@ fn to_fragrance_data(f: &models::fragrance::Fragrance) -> FragranceData {
         season_fall: f.seasons.contains("Fall"),
         season_winter: f.seasons.contains("Winter"),
         category: f.category.clone().into(),
+        ratings: ModelRc::new(VecModel::from(ratings)),
     }
 }
 
-fn build_dashboard(database: &rusqlite::Connection) -> DashboardData {
+fn group_into_rows<T: Clone>(items: &[T], row_size: usize) -> Vec<Vec<T>> {
+    items.chunks(row_size).map(|chunk| chunk.to_vec()).collect()
+}
+
+fn load_rows(database: &rusqlite::Connection, sort_option: &str, search_text: &str) -> Vec<FragranceRow> {
+    let users = database::user_repository::get_all(database);
+    let ratings_map = build_ratings_map(database);
     let fragrances = database::fragrance_repository::get_all(database);
 
-    if fragrances.is_empty() {
+    let mut ui_fragrances: Vec<FragranceData> = fragrances
+        .iter()
+        .map(|f| to_fragrance_data(f, &users, &ratings_map))
+        .collect();
+
+    let search = search_text.trim().to_lowercase();
+
+    ui_fragrances.retain(|f| {
+        if search.is_empty() {
+            return true;
+        }
+        f.brand.to_lowercase().contains(&search) || f.name.to_lowercase().contains(&search)
+    });
+
+    match sort_option {
+        "Rating: High → Low" => {
+            ui_fragrances.sort_by(|a, b| b.rating.partial_cmp(&a.rating).unwrap_or(std::cmp::Ordering::Equal));
+        }
+        "Rating: Low → High" => {
+            ui_fragrances.sort_by(|a, b| a.rating.partial_cmp(&b.rating).unwrap_or(std::cmp::Ordering::Equal));
+        }
+        "Name: A → Z" => {
+            ui_fragrances.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+        }
+        "Name: Z → A" => {
+            ui_fragrances.sort_by(|a, b| b.name.to_lowercase().cmp(&a.name.to_lowercase()));
+        }
+        _ => {}
+    }
+
+    group_into_rows(&ui_fragrances, 3)
+        .iter()
+        .map(|row| FragranceRow {
+            fragrances: ModelRc::new(VecModel::from(row.clone())),
+        })
+        .collect()
+}
+
+fn build_dashboard(database: &rusqlite::Connection) -> DashboardData {
+    let users = database::user_repository::get_all(database);
+    let ratings_map = build_ratings_map(database);
+    let fragrances = database::fragrance_repository::get_all(database);
+
+    let ui_fragrances: Vec<FragranceData> = fragrances
+        .iter()
+        .map(|f| to_fragrance_data(f, &users, &ratings_map))
+        .collect();
+
+    if ui_fragrances.is_empty() {
         return DashboardData {
             total: 0,
             average_rating: 0.0,
@@ -70,24 +159,25 @@ fn build_dashboard(database: &rusqlite::Connection) -> DashboardData {
         };
     }
 
-    let total = fragrances.len();
-    let average_rating = (fragrances.iter().map(|f| f.rating).sum::<f64>() / total as f64) as f32;
+    let total = ui_fragrances.len();
+    let average_rating = ui_fragrances.iter().map(|f| f.rating).sum::<f32>() / total as f32;
 
-    let highest = fragrances
+    let highest = ui_fragrances
         .iter()
         .max_by(|a, b| a.rating.partial_cmp(&b.rating).unwrap_or(std::cmp::Ordering::Equal))
-        .unwrap();
+        .unwrap()
+        .clone();
 
-    let lowest = fragrances
+    let lowest = ui_fragrances
         .iter()
         .min_by(|a, b| a.rating.partial_cmp(&b.rating).unwrap_or(std::cmp::Ordering::Equal))
-        .unwrap();
+        .unwrap()
+        .clone();
 
-    // Tally season counts; ties broken by Spring/Summer/Fall/Winter order.
     let season_order = ["Spring", "Summer", "Fall", "Winter"];
     let mut season_counts = [0usize; 4];
 
-    for f in &fragrances {
+    for f in &ui_fragrances {
         for (i, season) in season_order.iter().enumerate() {
             if f.seasons.contains(season) {
                 season_counts[i] += 1;
@@ -108,42 +198,61 @@ fn build_dashboard(database: &rusqlite::Connection) -> DashboardData {
         season_order[most_common_index].to_string()
     };
 
-    let mut season_matches: Vec<_> = fragrances
+    let mut season_matches: Vec<FragranceData> = ui_fragrances
         .iter()
-        .filter(|f| f.seasons.contains(&most_common_season) && !most_common_season.is_empty())
+        .filter(|f| !most_common_season.is_empty() && f.seasons.contains(&most_common_season))
+        .cloned()
         .collect();
     season_matches.sort_by(|a, b| b.rating.partial_cmp(&a.rating).unwrap_or(std::cmp::Ordering::Equal));
-    let season_top: Vec<FragranceData> = season_matches.iter().take(3).map(|f| to_fragrance_data(f)).collect();
+    let season_top: Vec<FragranceData> = season_matches.into_iter().take(3).collect();
 
-    let mut by_recency: Vec<_> = fragrances.iter().collect();
+    let mut by_recency: Vec<FragranceData> = ui_fragrances.clone();
     by_recency.sort_by(|a, b| b.id.cmp(&a.id));
-    let recently_added: Vec<FragranceData> = by_recency.iter().take(3).map(|f| to_fragrance_data(f)).collect();
+    let recently_added: Vec<FragranceData> = by_recency.into_iter().take(3).collect();
 
-    let mut cologne_matches: Vec<_> = fragrances
+    let mut cologne_matches: Vec<FragranceData> = ui_fragrances
         .iter()
         .filter(|f| f.category == "Cologne" || f.category == "Unisex")
+        .cloned()
         .collect();
     cologne_matches.sort_by(|a, b| b.rating.partial_cmp(&a.rating).unwrap_or(std::cmp::Ordering::Equal));
-    let top_cologne: Vec<FragranceData> = cologne_matches.iter().take(3).map(|f| to_fragrance_data(f)).collect();
+    let top_cologne: Vec<FragranceData> = cologne_matches.into_iter().take(3).collect();
 
-    let mut perfume_matches: Vec<_> = fragrances
+    let mut perfume_matches: Vec<FragranceData> = ui_fragrances
         .iter()
         .filter(|f| f.category == "Perfume" || f.category == "Unisex")
+        .cloned()
         .collect();
     perfume_matches.sort_by(|a, b| b.rating.partial_cmp(&a.rating).unwrap_or(std::cmp::Ordering::Equal));
-    let top_perfume: Vec<FragranceData> = perfume_matches.iter().take(3).map(|f| to_fragrance_data(f)).collect();
+    let top_perfume: Vec<FragranceData> = perfume_matches.into_iter().take(3).collect();
 
     DashboardData {
         total: total as i32,
         average_rating,
-        highest_rated: to_fragrance_data(highest),
-        lowest_rated: to_fragrance_data(lowest),
+        highest_rated: highest,
+        lowest_rated: lowest,
         most_common_season: most_common_season.into(),
         season_top: ModelRc::new(VecModel::from(season_top)),
         recently_added: ModelRc::new(VecModel::from(recently_added)),
         top_cologne: ModelRc::new(VecModel::from(top_cologne)),
         top_perfume: ModelRc::new(VecModel::from(top_perfume)),
     }
+}
+
+fn refresh_users_model(database: &rusqlite::Connection) -> ModelRc<AppUser> {
+    let users = database::user_repository::get_all(database);
+    let app_users: Vec<AppUser> = users
+        .iter()
+        .map(|u| AppUser { id: u.id as i32, name: u.name.clone().into() })
+        .collect();
+    ModelRc::new(VecModel::from(app_users))
+}
+
+fn refresh_all(ui: &MainWindow, database: &rusqlite::Connection, sort_option: &str, search_text: &str) {
+    let rows = load_rows(database, sort_option, search_text);
+    ui.set_rows(ModelRc::new(VecModel::from(rows)));
+    ui.set_dashboard(build_dashboard(database));
+    ui.set_users(refresh_users_model(database));
 }
 
 fn main() {
@@ -158,6 +267,8 @@ fn main() {
     let current_sort = Rc::new(std::cell::RefCell::new("Rating: High → Low".to_string()));
     let current_search = Rc::new(std::cell::RefCell::new(String::new()));
 
+    refresh_all(&ui, &database, "Rating: High → Low", "");
+
     let sort_database = Rc::clone(&database);
     let sort_state = Rc::clone(&current_sort);
     let search_state = Rc::clone(&current_search);
@@ -169,8 +280,7 @@ fn main() {
             let search_text = search_state.borrow().clone();
 
             if let Some(ui) = sort_ui.upgrade() {
-                let rows = load_rows(&sort_database, &sort_option, &search_text);
-                ui.set_rows(ModelRc::new(VecModel::from(rows)));
+                refresh_all(&ui, &sort_database, &sort_option, &search_text);
             }
         }
     );
@@ -186,15 +296,10 @@ fn main() {
             let sort_option = search_sort.borrow().clone();
 
             if let Some(ui) = search_ui.upgrade() {
-                let rows = load_rows(&search_database, &sort_option, &search_text);
-                ui.set_rows(ModelRc::new(VecModel::from(rows)));
+                refresh_all(&ui, &search_database, &sort_option, &search_text);
             }
         }
     );
-
-    let ui_rows = load_rows(&database, "Rating: High → Low", "");
-    ui.set_rows(ModelRc::new(VecModel::from(ui_rows)));
-    ui.set_dashboard(build_dashboard(&database));
 
     let save_ui = ui.as_weak();
     let save_database = Rc::clone(&database);
@@ -216,7 +321,6 @@ fn main() {
                     id: input.id as i64,
                     brand: &input.brand,
                     name: &input.name,
-                    rating: input.rating as f64,
                     concentration: &input.concentration,
                     projection: &input.projection,
                     longevity: &input.longevity,
@@ -234,12 +338,21 @@ fn main() {
                 },
             );
 
+            for i in 0..input.ratings.row_count() {
+                if let Some(user_rating) = input.ratings.row_data(i) {
+                    database::rating_repository::set_rating(
+                        &save_database,
+                        input.id as i64,
+                        user_rating.user_id as i64,
+                        user_rating.rating as f64,
+                    );
+                }
+            }
+
             if let Some(ui) = save_ui.upgrade() {
                 let search_text = save_search.borrow().clone();
                 let sort_option = save_sort.borrow().clone();
-                let rows = load_rows(&save_database, &sort_option, &search_text);
-                ui.set_rows(ModelRc::new(VecModel::from(rows)));
-                ui.set_dashboard(build_dashboard(&save_database));
+                refresh_all(&ui, &save_database, &sort_option, &search_text);
             }
 
             println!("Updated fragrance: {}", input.name);
@@ -250,20 +363,14 @@ fn main() {
 
     ui.on_choose_image_requested(
         move || {
-            let mut dialog = rfd::FileDialog::new()
-                .add_filter("Images", &["png", "jpg", "jpeg", "webp"]);
-
-            if let Some(downloads) = dirs::download_dir() {
-                dialog = dialog.set_directory(downloads);
-            }
-
-            if let Some(path) = dialog.pick_file() {
+            if let Some(path) = rfd::FileDialog::new()
+                .add_filter("Images", &["png", "jpg", "jpeg", "webp"])
+                .pick_file()
+            {
                 println!("Selected image: {}", path.display());
 
                 if let Some(ui) = image_ui.upgrade() {
-                    ui.set_selected_image_path(
-                        path.to_string_lossy().to_string().into()
-                    );
+                    ui.set_selected_image_path(path.to_string_lossy().to_string().into());
                 }
             }
         }
@@ -288,7 +395,6 @@ fn main() {
                 models::fragrance::NewFragrance {
                     brand: &input.brand,
                     name: &input.name,
-                    rating: input.rating as f64,
                     concentration: &input.concentration,
                     projection: &input.projection,
                     longevity: &input.longevity,
@@ -306,13 +412,10 @@ fn main() {
                 },
             );
 
-            let sort_option = add_sort.borrow().clone();
-            let search_text = add_search.borrow().clone();
-
             if let Some(ui) = add_ui.upgrade() {
-                let rows = load_rows(&add_database, &sort_option, &search_text);
-                ui.set_rows(ModelRc::new(VecModel::from(rows)));
-                ui.set_dashboard(build_dashboard(&add_database));
+                let sort_option = add_sort.borrow().clone();
+                let search_text = add_search.borrow().clone();
+                refresh_all(&ui, &add_database, &sort_option, &search_text);
             }
 
             println!("Added fragrance: {}", input.name);
@@ -327,14 +430,12 @@ fn main() {
     ui.on_delete_requested(
         move |id| {
             database::fragrance_repository::delete(&delete_database, id);
-
-            let sort_option = delete_sort.borrow().clone();
-            let search_text = delete_search.borrow().clone();
+            database::rating_repository::delete_for_fragrance(&delete_database, id as i64);
 
             if let Some(ui) = delete_ui.upgrade() {
-                let rows = load_rows(&delete_database, &sort_option, &search_text);
-                ui.set_rows(ModelRc::new(VecModel::from(rows)));
-                ui.set_dashboard(build_dashboard(&delete_database));
+                let sort_option = delete_sort.borrow().clone();
+                let search_text = delete_search.borrow().clone();
+                refresh_all(&ui, &delete_database, &sort_option, &search_text);
             }
 
             println!("Deleted fragrance with ID: {}", id);
@@ -345,14 +446,10 @@ fn main() {
 
     ui.on_choose_image_requested_edit(
         move || {
-            let mut dialog = rfd::FileDialog::new()
-                .add_filter("Images", &["png", "jpg", "jpeg", "webp"]);
-
-            if let Some(downloads) = dirs::download_dir() {
-                dialog = dialog.set_directory(downloads);
-            }
-
-            if let Some(path) = dialog.pick_file() {
+            if let Some(path) = rfd::FileDialog::new()
+                .add_filter("Images", &["png", "jpg", "jpeg", "webp"])
+                .pick_file()
+            {
                 let path_string = path.to_string_lossy().to_string();
                 let picture = slint::Image::load_from_path(&path).unwrap_or_default();
 
@@ -369,51 +466,56 @@ fn main() {
         }
     );
 
-    ui.run().unwrap();
-}
+    let add_user_ui = ui.as_weak();
+    let add_user_database = Rc::clone(&database);
+    let add_user_sort = Rc::clone(&current_sort);
+    let add_user_search = Rc::clone(&current_search);
 
-fn group_into_rows<T: Clone>(items: &[T], row_size: usize) -> Vec<Vec<T>> {
-    items.chunks(row_size).map(|chunk| chunk.to_vec()).collect()
-}
+    ui.on_add_user_requested(
+        move |name| {
+            database::user_repository::insert(&add_user_database, &name);
 
-fn load_rows(database: &rusqlite::Connection, sort_option: &str, search_text: &str) -> Vec<FragranceRow> {
-    let fragrances = database::fragrance_repository::get_all(database);
-
-    let search = search_text.trim().to_lowercase();
-
-    let mut fragrances: Vec<_> = fragrances
-        .into_iter()
-        .filter(|fragrance| {
-            if search.is_empty() {
-                return true;
+            if let Some(ui) = add_user_ui.upgrade() {
+                let sort_option = add_user_sort.borrow().clone();
+                let search_text = add_user_search.borrow().clone();
+                refresh_all(&ui, &add_user_database, &sort_option, &search_text);
             }
-            fragrance.brand.to_lowercase().contains(&search)
-                || fragrance.name.to_lowercase().contains(&search)
-        })
-        .collect();
+        }
+    );
 
-    match sort_option {
-        "Rating: High → Low" => {
-            fragrances.sort_by(|a, b| b.rating.partial_cmp(&a.rating).unwrap_or(std::cmp::Ordering::Equal));
-        }
-        "Rating: Low → High" => {
-            fragrances.sort_by(|a, b| a.rating.partial_cmp(&b.rating).unwrap_or(std::cmp::Ordering::Equal));
-        }
-        "Name: A → Z" => {
-            fragrances.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
-        }
-        "Name: Z → A" => {
-            fragrances.sort_by(|a, b| b.name.to_lowercase().cmp(&a.name.to_lowercase()));
-        }
-        _ => {}
-    }
+    let update_user_ui = ui.as_weak();
+    let update_user_database = Rc::clone(&database);
+    let update_user_sort = Rc::clone(&current_sort);
+    let update_user_search = Rc::clone(&current_search);
 
-    let ui_fragrances: Vec<FragranceData> = fragrances.iter().map(|f| to_fragrance_data(f)).collect();
+    ui.on_update_user_requested(
+        move |id, name| {
+            database::user_repository::update(&update_user_database, id as i64, &name);
 
-    group_into_rows(&ui_fragrances, 3)
-        .iter()
-        .map(|row| FragranceRow {
-            fragrances: ModelRc::new(VecModel::from(row.clone())),
-        })
-        .collect()
+            if let Some(ui) = update_user_ui.upgrade() {
+                let sort_option = update_user_sort.borrow().clone();
+                let search_text = update_user_search.borrow().clone();
+                refresh_all(&ui, &update_user_database, &sort_option, &search_text);
+            }
+        }
+    );
+
+    let delete_user_ui = ui.as_weak();
+    let delete_user_database = Rc::clone(&database);
+    let delete_user_sort = Rc::clone(&current_sort);
+    let delete_user_search = Rc::clone(&current_search);
+
+    ui.on_delete_user_requested(
+        move |id| {
+            database::user_repository::delete(&delete_user_database, id as i64);
+
+            if let Some(ui) = delete_user_ui.upgrade() {
+                let sort_option = delete_user_sort.borrow().clone();
+                let search_text = delete_user_search.borrow().clone();
+                refresh_all(&ui, &delete_user_database, &sort_option, &search_text);
+            }
+        }
+    );
+
+    ui.run().unwrap();
 }

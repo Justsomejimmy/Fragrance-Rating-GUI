@@ -7,7 +7,6 @@ pub struct Fragrance {
     pub longevity: String,
     pub price: String,
     pub purchase_date: String,
-    pub rating: f64,
     pub notes: String,
     pub seasons: String,
     pub image_path: String,
@@ -22,7 +21,6 @@ pub struct Fragrance {
 pub struct NewFragrance<'a> {
     pub brand: &'a str,
     pub name: &'a str,
-    pub rating: f64,
     pub concentration: &'a str,
     pub projection: &'a str,
     pub longevity: &'a str,
@@ -43,7 +41,6 @@ pub struct UpdateFragrance<'a> {
     pub id: i64,
     pub brand: &'a str,
     pub name: &'a str,
-    pub rating: f64,
     pub concentration: &'a str,
     pub projection: &'a str,
     pub longevity: &'a str,

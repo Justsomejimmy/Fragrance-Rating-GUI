@@ -1,5 +1,5 @@
 import { VerticalBox, HorizontalBox, ScrollView, Button, LineEdit, Slider, CheckBox } from "std-widgets.slint";
-import { FragranceData, FragranceInput, ImageSelection } from "../types.slint";
+import { FragranceData, FragranceInput, ImageSelection, UserRating } from "../types.slint";
 import { CategoryChip } from "../components/category_chip.slint";
 
 export component EditFragrance inherits Rectangle {
@@ -7,7 +7,6 @@ export component EditFragrance inherits Rectangle {
 
     property <string> brand;
     property <string> name;
-    property <float> rating;
     property <string> concentration;
     property <string> projection;
     property <string> longevity;
@@ -21,6 +20,7 @@ export component EditFragrance inherits Rectangle {
     property <string> category;
     property <string> my_notes;
     property <string> partner_notes;
+    property <[UserRating]> ratings;
 
     property <string> image_path;
     property <image> preview_image;
@@ -36,7 +36,6 @@ export component EditFragrance inherits Rectangle {
     init => {
         root.brand = fragrance.brand;
         root.name = fragrance.name;
-        root.rating = fragrance.rating;
         root.concentration = fragrance.concentration;
         root.projection = fragrance.projection;
         root.longevity = fragrance.longevity;
@@ -50,6 +49,7 @@ export component EditFragrance inherits Rectangle {
         root.category = fragrance.category == "" ? "Perfume" : fragrance.category;
         root.my_notes = fragrance.my_notes;
         root.partner_notes = fragrance.partner_notes;
+        root.ratings = fragrance.ratings;
 
         root.image_path = fragrance.image_path;
         root.preview_image = fragrance.image;
@@ -174,40 +174,51 @@ export component EditFragrance inherits Rectangle {
             VerticalBox {
                 spacing: 5px;
 
-                HorizontalBox {
-                    spacing: 10px;
+                Text {
+                    text: "Ratings";
+                    color: white;
+                    font-size: 16px;
+                }
 
-                    Text {
-                        text: "Rating:";
-                        color: white;
-                        font-size: 16px;
-                        vertical-alignment: center;
-                    }
+                for entry[i] in root.ratings : VerticalBox {
+                    spacing: 3px;
 
-                    LineEdit {
-                        width: 60px;
-                        text: root.rating;
+                    HorizontalBox {
+                        spacing: 10px;
 
-                        edited => {
-                            root.rating = max(0.0, min(10.0, self.text.to-float()));
+                        Text {
+                            text: entry.user_name + ":";
+                            color: white;
+                            font-size: 14px;
+                            vertical-alignment: center;
+                            width: 100px;
+                        }
+
+                        LineEdit {
+                            width: 55px;
+                            text: entry.rating;
+
+                            edited => {
+                                root.ratings[i].rating = max(0.0, min(10.0, self.text.to-float()));
+                            }
+                        }
+
+                        Text {
+                            text: "/ 10";
+                            color: white;
+                            font-size: 14px;
+                            vertical-alignment: center;
                         }
                     }
 
-                    Text {
-                        text: "/ 10";
-                        color: white;
-                        font-size: 16px;
-                        vertical-alignment: center;
-                    }
-                }
+                    Slider {
+                        minimum: 0;
+                        maximum: 10;
+                        value: entry.rating;
 
-                Slider {
-                    minimum: 0;
-                    maximum: 10;
-                    value: root.rating;
-
-                    changed(new-value) => {
-                        root.rating = round(new-value * 10) / 10;
+                        changed(new-value) => {
+                            root.ratings[i].rating = round(new-value * 10) / 10;
+                        }
                     }
                 }
             }
@@ -337,7 +348,6 @@ export component EditFragrance inherits Rectangle {
                             id: root.fragrance.id,
                             brand: root.brand,
                             name: root.name,
-                            rating: root.rating,
                             concentration: root.concentration,
                             projection: root.projection,
                             longevity: root.longevity,
@@ -355,6 +365,7 @@ export component EditFragrance inherits Rectangle {
                             image_offset_x: root.offset_x / 1px,
                             image_offset_y: root.offset_y / 1px,
                             image_scale: root.scale,
+                            ratings: root.ratings,
                         });
                     }
                 }

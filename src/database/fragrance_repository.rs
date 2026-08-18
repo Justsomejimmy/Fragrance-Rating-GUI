@@ -6,7 +6,7 @@ pub fn get_all(conn: &Connection) -> Vec<Fragrance> {
         "
         SELECT
             id, brand, name, concentration, projection, longevity,
-            price, purchase_date, rating, notes, seasons, image_path,
+            price, purchase_date, notes, seasons, image_path,
             my_notes, partner_notes, image_offset_x, image_offset_y,
             image_scale, category
         FROM fragrances
@@ -23,16 +23,15 @@ pub fn get_all(conn: &Connection) -> Vec<Fragrance> {
             longevity: row.get(5)?,
             price: row.get(6)?,
             purchase_date: row.get(7)?,
-            rating: row.get(8)?,
-            notes: row.get(9)?,
-            seasons: row.get(10)?,
-            image_path: row.get(11)?,
-            my_notes: row.get(12)?,
-            partner_notes: row.get(13)?,
-            image_offset_x: row.get(14)?,
-            image_offset_y: row.get(15)?,
-            image_scale: row.get(16)?,
-            category: row.get(17)?,
+            notes: row.get(8)?,
+            seasons: row.get(9)?,
+            image_path: row.get(10)?,
+            my_notes: row.get(11)?,
+            partner_notes: row.get(12)?,
+            image_offset_x: row.get(13)?,
+            image_offset_y: row.get(14)?,
+            image_scale: row.get(15)?,
+            category: row.get(16)?,
         })
     }).unwrap();
 
@@ -44,10 +43,10 @@ pub fn insert(conn: &Connection, fragrance: NewFragrance) {
         "
         INSERT INTO fragrances (
             brand, name, concentration, projection, longevity, price,
-            purchase_date, rating, notes, seasons, image_path, my_notes,
+            purchase_date, notes, seasons, image_path, my_notes,
             partner_notes, image_offset_x, image_offset_y, image_scale, category
         )
-        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17)
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)
         ",
         rusqlite::params![
             fragrance.brand,
@@ -57,7 +56,6 @@ pub fn insert(conn: &Connection, fragrance: NewFragrance) {
             fragrance.longevity,
             fragrance.price,
             fragrance.purchase_date,
-            fragrance.rating,
             fragrance.notes,
             fragrance.seasons,
             fragrance.image_path,
@@ -76,17 +74,15 @@ pub fn update(conn: &Connection, fragrance: UpdateFragrance) {
         "
         UPDATE fragrances
         SET
-            brand = ?1, name = ?2, rating = ?3, concentration = ?4,
-            projection = ?5, longevity = ?6, price = ?7, purchase_date = ?8,
-            notes = ?9, seasons = ?10, my_notes = ?11, partner_notes = ?12,
-            image_path = ?13, image_offset_x = ?14, image_offset_y = ?15,
-            image_scale = ?16, category = ?17
-        WHERE id = ?18
+            brand = ?1, name = ?2, concentration = ?3, projection = ?4,
+            longevity = ?5, price = ?6, purchase_date = ?7, notes = ?8,
+            seasons = ?9, my_notes = ?10, partner_notes = ?11, image_path = ?12,
+            image_offset_x = ?13, image_offset_y = ?14, image_scale = ?15, category = ?16
+        WHERE id = ?17
         ",
         rusqlite::params![
             fragrance.brand,
             fragrance.name,
-            fragrance.rating,
             fragrance.concentration,
             fragrance.projection,
             fragrance.longevity,

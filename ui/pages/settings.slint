@@ -1,0 +1,85 @@
+import { VerticalBox, HorizontalBox, Button, LineEdit, ScrollView } from "std-widgets.slint";
+import { AppUser } from "../types.slint";
+
+export component SettingsPage inherits Rectangle {
+    in property <[AppUser]> users;
+
+    callback add_user_requested(string);
+    callback update_user_requested(int, string);
+    callback delete_user_requested(int);
+
+    property <string> new_user_name;
+
+    background: #181818;
+
+    VerticalBox {
+        padding: 30px;
+        spacing: 20px;
+
+        Text {
+            text: "Settings";
+            font-size: 32px;
+            color: white;
+        }
+
+        Text {
+            text: "Users";
+            font-size: 22px;
+            color: white;
+        }
+
+        Text {
+            text: "Press Enter after editing a name to save it.";
+            color: #aaaaaa;
+            font-size: 12px;
+        }
+
+        ScrollView {
+            height: 300px;
+
+            VerticalBox {
+                spacing: 10px;
+
+                for user in root.users : HorizontalBox {
+                    spacing: 10px;
+
+                    LineEdit {
+                        text: user.name;
+
+                        accepted(new-name) => {
+                            root.update_user_requested(user.id, new-name);
+                        }
+                    }
+
+                    Button {
+                        text: "Remove";
+
+                        clicked => {
+                            root.delete_user_requested(user.id);
+                        }
+                    }
+                }
+            }
+        }
+
+        HorizontalBox {
+            spacing: 10px;
+
+            LineEdit {
+                placeholder-text: "New user name";
+                text <=> root.new_user_name;
+            }
+
+            Button {
+                text: "Add User";
+
+                clicked => {
+                    if (root.new_user_name != "") {
+                        root.add_user_requested(root.new_user_name);
+                        root.new_user_name = "";
+                    }
+                }
+            }
+        }
+    }
+}
