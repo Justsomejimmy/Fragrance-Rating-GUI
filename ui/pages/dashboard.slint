@@ -1,155 +1,194 @@
 import { VerticalBox, HorizontalBox, ScrollView } from "std-widgets.slint";
 import { FragranceCard } from "../components/fragrance_card.slint";
 import { FragranceData, DashboardData } from "../types.slint";
+import { Theme } from "../theme.slint";
+
+component Eyebrow inherits Text {
+    color: Theme.text-muted;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+component StatTile inherits Rectangle {
+    in property <string> value;
+    in property <string> label;
+
+    background: Theme.bg-card;
+    border-radius: Theme.radius-lg;
+    border-width: 1px;
+    border-color: Theme.border;
+    min-height: 110px;
+    horizontal-stretch: 1;
+    clip: true;
+
+    VerticalBox {
+        padding: Theme.space-md;
+        alignment: center;
+        spacing: Theme.space-xs;
+
+        Text {
+            text: root.value;
+            color: Theme.text-primary;
+            font-size: 30px;
+            font-weight: 800;
+            horizontal-alignment: center;
+            wrap: word-wrap;
+        }
+
+        Eyebrow {
+            text: root.label;
+            horizontal-alignment: center;
+        }
+    }
+}
+
+component HighlightTile inherits Rectangle {
+    in property <string> eyebrow;
+    in property <string> fragrance-title;
+    in property <string> detail;
+
+    background: Theme.bg-card;
+    border-radius: Theme.radius-lg;
+    border-width: 1px;
+    border-color: Theme.border;
+    min-height: 110px;
+    horizontal-stretch: 1;
+    clip: true;
+
+    VerticalBox {
+        padding: Theme.space-md;
+        alignment: center;
+        spacing: Theme.space-xs;
+
+        Eyebrow {
+            text: root.eyebrow;
+            horizontal-alignment: center;
+        }
+
+        Text {
+            text: root.fragrance-title;
+            color: Theme.text-primary;
+            font-size: 20px;
+            font-weight: 700;
+            horizontal-alignment: center;
+            wrap: word-wrap;
+        }
+
+        Text {
+            text: root.detail;
+            color: Theme.accent;
+            font-size: 13px;
+            font-weight: 600;
+            horizontal-alignment: center;
+        }
+    }
+}
+
+component SectionHeader inherits HorizontalBox {
+    in property <string> title;
+    spacing: Theme.space-xs;
+
+    Rectangle {
+        width: 4px;
+        height: 20px;
+        background: Theme.accent;
+        border-radius: 2px;
+    }
+
+    Text {
+        text: root.title;
+        color: Theme.text-primary;
+        font-size: 19px;
+        font-weight: 700;
+        vertical-alignment: center;
+    }
+}
 
 export component Dashboard inherits Rectangle {
     in property <DashboardData> dashboard;
 
     callback fragrance_clicked(FragranceData);
 
-    background: #181818;
+    background: Theme.bg-app;
 
     ScrollView {
         VerticalBox {
-            padding: 30px;
-            spacing: 25px;
+            padding: Theme.space-lg;
+            spacing: Theme.space-lg;
 
-            Text {
-                text: "Dashboard";
-                font-size: 40px;
-                color: white;
+            VerticalBox {
+                spacing: 2px;
+
+                Text {
+                    text: "Dashboard";
+                    font-size: 34px;
+                    font-weight: 800;
+                    color: Theme.text-primary;
+                }
+
+                Text {
+                    text: "An overview of your collection";
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: Theme.text-secondary;
+                }
             }
 
-            if root.dashboard.total == 0 : Text {
-                text: "No fragrances in your collection yet.";
-                color: #aaaaaa;
-                font-size: 18px;
+            if root.dashboard.total == 0 : Rectangle {
+                background: Theme.bg-card;
+                border-radius: Theme.radius-lg;
+                border-width: 1px;
+                border-color: Theme.border;
+                height: 100px;
+
+                Text {
+                    text: "No fragrances in your collection yet.";
+                    color: Theme.text-secondary;
+                    font-size: 16px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
             }
 
             if root.dashboard.total > 0 : VerticalBox {
-                spacing: 25px;
+                spacing: Theme.space-lg;
 
                 HorizontalBox {
-                    spacing: 20px;
+                    spacing: Theme.space-md;
 
-                    Rectangle {
-                        background: #242424;
-                        border-radius: 12px;
-                        height: 100px;
-                        horizontal-stretch: 1;
-
-                        VerticalBox {
-                            padding: 15px;
-                            alignment: center;
-
-                            Text {
-                                text: root.dashboard.total;
-                                color: white;
-                                font-size: 32px;
-                                horizontal-alignment: center;
-                            }
-
-                            Text {
-                                text: "Total Fragrances";
-                                color: #aaaaaa;
-                                font-size: 13px;
-                                horizontal-alignment: center;
-                            }
-                        }
+                    StatTile {
+                        value: root.dashboard.total;
+                        label: "TOTAL FRAGRANCES";
                     }
 
-                    Rectangle {
-                        background: #242424;
-                        border-radius: 12px;
-                        height: 100px;
-                        horizontal-stretch: 1;
-
-                        VerticalBox {
-                            padding: 15px;
-                            alignment: center;
-
-                            Text {
-                                text: "⭐ " + root.dashboard.average_rating;
-                                color: white;
-                                font-size: 32px;
-                                horizontal-alignment: center;
-                            }
-
-                            Text {
-                                text: "Average Rating";
-                                color: #aaaaaa;
-                                font-size: 13px;
-                                horizontal-alignment: center;
-                            }
-                        }
+                    StatTile {
+                        value: "⭐ " + root.dashboard.average_rating;
+                        label: "AVERAGE RATING";
                     }
 
-                    Rectangle {
-                        background: #242424;
-                        border-radius: 12px;
-                        height: 100px;
-                        horizontal-stretch: 1;
-
-                        VerticalBox {
-                            padding: 15px;
-                            alignment: center;
-
-                            Text {
-                                text: root.dashboard.highest_rated.brand + " " + root.dashboard.highest_rated.name;
-                                color: white;
-                                font-size: 16px;
-                                horizontal-alignment: center;
-                                wrap: word-wrap;
-                            }
-
-                            Text {
-                                text: "Highest Rated — ⭐ " + root.dashboard.highest_rated.rating;
-                                color: #aaaaaa;
-                                font-size: 13px;
-                                horizontal-alignment: center;
-                            }
-                        }
+                    HighlightTile {
+                        eyebrow: "HIGHEST RATED";
+                        fragrance-title: root.dashboard.highest_rated.brand + " " + root.dashboard.highest_rated.name;
+                        detail: "⭐ " + root.dashboard.highest_rated.rating;
                     }
 
-                    Rectangle {
-                        background: #242424;
-                        border-radius: 12px;
-                        height: 100px;
-                        horizontal-stretch: 1;
-
-                        VerticalBox {
-                            padding: 15px;
-                            alignment: center;
-
-                            Text {
-                                text: root.dashboard.lowest_rated.brand + " " + root.dashboard.lowest_rated.name;
-                                color: white;
-                                font-size: 16px;
-                                horizontal-alignment: center;
-                                wrap: word-wrap;
-                            }
-
-                            Text {
-                                text: "Lowest Rated — ⭐ " + root.dashboard.lowest_rated.rating;
-                                color: #aaaaaa;
-                                font-size: 13px;
-                                horizontal-alignment: center;
-                            }
-                        }
+                    HighlightTile {
+                        eyebrow: "LOWEST RATED";
+                        fragrance-title: root.dashboard.lowest_rated.brand + " " + root.dashboard.lowest_rated.name;
+                        detail: "⭐ " + root.dashboard.lowest_rated.rating;
                     }
                 }
 
                 VerticalBox {
-                    spacing: 10px;
+                    spacing: Theme.space-sm;
 
-                    Text {
-                        text: "Top Fragrances This Season (" + root.dashboard.most_common_season + ")";
-                        color: white;
-                        font-size: 22px;
+                    SectionHeader {
+                        title: "Top Fragrances This Season (" + root.dashboard.most_common_season + ")";
                     }
 
                     HorizontalBox {
-                        spacing: 20px;
+                        spacing: Theme.space-md;
 
                         for fragrance in root.dashboard.season_top : FragranceCard {
                             brand: fragrance.brand;
@@ -171,16 +210,14 @@ export component Dashboard inherits Rectangle {
                 }
 
                 VerticalBox {
-                    spacing: 10px;
+                    spacing: Theme.space-sm;
 
-                    Text {
-                        text: "Recently Added";
-                        color: white;
-                        font-size: 22px;
+                    SectionHeader {
+                        title: "Recently Added";
                     }
 
                     HorizontalBox {
-                        spacing: 20px;
+                        spacing: Theme.space-md;
 
                         for fragrance in root.dashboard.recently_added : FragranceCard {
                             brand: fragrance.brand;
@@ -202,16 +239,14 @@ export component Dashboard inherits Rectangle {
                 }
 
                 VerticalBox {
-                    spacing: 10px;
+                    spacing: Theme.space-sm;
 
-                    Text {
-                        text: "Top Colognes";
-                        color: white;
-                        font-size: 22px;
+                    SectionHeader {
+                        title: "Top Colognes";
                     }
 
                     HorizontalBox {
-                        spacing: 20px;
+                        spacing: Theme.space-md;
 
                         for fragrance in root.dashboard.top_cologne : FragranceCard {
                             brand: fragrance.brand;
@@ -233,16 +268,14 @@ export component Dashboard inherits Rectangle {
                 }
 
                 VerticalBox {
-                    spacing: 10px;
+                    spacing: Theme.space-sm;
 
-                    Text {
-                        text: "Top Perfumes";
-                        color: white;
-                        font-size: 22px;
+                    SectionHeader {
+                        title: "Top Perfumes";
                     }
 
                     HorizontalBox {
-                        spacing: 20px;
+                        spacing: Theme.space-md;
 
                         for fragrance in root.dashboard.top_perfume : FragranceCard {
                             brand: fragrance.brand;

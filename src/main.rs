@@ -176,7 +176,8 @@ fn build_dashboard(database: &rusqlite::Connection) -> DashboardData {
     }
 
     let total = ui_fragrances.len();
-    let average_rating = ui_fragrances.iter().map(|f| f.rating).sum::<f32>() / total as f32;
+    let raw_average = ui_fragrances.iter().map(|f| f.rating).sum::<f32>() / total as f32;
+    let average_rating = (raw_average * 10.0).round() / 10.0;
 
     let highest = ui_fragrances
         .iter()

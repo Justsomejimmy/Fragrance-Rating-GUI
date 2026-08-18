@@ -1,4 +1,5 @@
-import { VerticalBox, HorizontalBox } from "std-widgets.slint";
+import { VerticalBox } from "std-widgets.slint";
+import { Theme } from "../theme.slint";
 
 export component FragranceCard inherits Rectangle {
     in property <string> brand;
@@ -17,8 +18,10 @@ export component FragranceCard inherits Rectangle {
     width: 220px;
     height: 320px;
 
-    background: #242424;
-    border-radius: 12px;
+    background: Theme.bg-card;
+    border-radius: Theme.radius-md;
+    border-width: 1px;
+    border-color: Theme.border;
 
     TouchArea {
         clicked => {
@@ -27,60 +30,77 @@ export component FragranceCard inherits Rectangle {
     }
 
     VerticalBox {
-        padding: 12px;
-        spacing: 6px;
+        padding: Theme.space-sm;
+        spacing: Theme.space-xs;
 
         Rectangle {
-            width: 140px;
-            height: 140px;
+            height: 150px;
+            border-radius: Theme.radius-sm;
             clip: true;
+            background: #000000;
 
             Image {
                 source: root.fragrance-image;
-                width: 140px * root.image_scale;
-                height: 140px * root.image_scale;
-                x: (140px - self.width) / 2 + root.image_offset_x * 1px;
-                y: (140px - self.height) / 2 + root.image_offset_y * 1px;
-                image-fit: contain;
-            }
-        }
-
-        HorizontalBox {
-            spacing: 8px;
-
-            Text {
-                text: brand + " - " + name;
-                color: white;
-                font-size: 16px;
-                wrap: word-wrap;
-                horizontal-stretch: 1;
+                width: parent.width * root.image_scale;
+                height: parent.height * root.image_scale;
+                x: (parent.width - self.width) / 2 + root.image_offset_x * 1px;
+                y: (parent.height - self.height) / 2 + root.image_offset_y * 1px;
+                image-fit: cover;
             }
 
-            Text {
-                text: category;
-                color: #66aaff;
-                font-size: 11px;
-                vertical-alignment: center;
+            Rectangle {
+                x: parent.width - self.width - 8px;
+                y: 8px;
+                width: 72px;
+                height: 22px;
+                background: #000000aa;
+                border-radius: 11px;
+
+                Text {
+                    text: root.category;
+                    color: white;
+                    font-size: 11px;
+                    width: 100%;
+                    height: 100%;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
             }
         }
 
         Text {
-            text: "⭐ " + rating;
-            color: white;
-            font-size: 13px;
+            text: root.brand;
+            color: Theme.text-secondary;
+            font-size: 12px;
         }
 
         Text {
-            text: notes;
-            color: #aaaaaa;
+            text: root.name;
+            color: Theme.text-primary;
+            font-size: 18px;
+            font-weight: 700;
+            wrap: word-wrap;
+            overflow: elide;
+        }
+
+        Text {
+            text: "⭐ " + root.rating;
+            color: Theme.accent;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        Text {
+            text: root.notes;
+            color: Theme.text-secondary;
             font-size: 12px;
             wrap: word-wrap;
             overflow: elide;
         }
 
         Text {
-            text: seasons;
-            color: #aaaaaa;
+            text: root.seasons;
+            color: Theme.text-muted;
             font-size: 12px;
         }
     }
