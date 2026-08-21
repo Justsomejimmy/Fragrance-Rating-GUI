@@ -1,6 +1,20 @@
 import { VerticalBox, HorizontalBox, ScrollView, Button, LineEdit, Slider, CheckBox } from "std-widgets.slint";
 import { FragranceData, FragranceInput, ImageSelection, UserRating } from "../types.slint";
 import { CategoryChip } from "../components/category_chip.slint";
+import { Theme } from "../theme.slint";
+
+component SectionCard inherits Rectangle {
+    background: Theme.bg-card;
+    border-radius: Theme.radius-lg;
+    border-width: 1px;
+    border-color: Theme.border;
+}
+
+component SectionLabel inherits Text {
+    color: Theme.text-primary;
+    font-size: 16px;
+    font-weight: 700;
+}
 
 export component EditFragrance inherits Rectangle {
     in property <FragranceData> fragrance;
@@ -18,10 +32,10 @@ export component EditFragrance inherits Rectangle {
     property <bool> season_fall;
     property <bool> season_winter;
     property <string> category;
-    property <bool> is_wishlist;
     property <string> my_notes;
     property <string> partner_notes;
     property <[UserRating]> ratings;
+    property <bool> is_wishlist;
 
     property <string> image_path;
     property <image> preview_image;
@@ -48,10 +62,10 @@ export component EditFragrance inherits Rectangle {
         root.season_fall = fragrance.season_fall;
         root.season_winter = fragrance.season_winter;
         root.category = fragrance.category == "" ? "Perfume" : fragrance.category;
-        root.is_wishlist = fragrance.is_wishlist;
         root.my_notes = fragrance.my_notes;
         root.partner_notes = fragrance.partner_notes;
         root.ratings = fragrance.ratings;
+        root.is_wishlist = fragrance.is_wishlist;
 
         root.image_path = fragrance.image_path;
         root.preview_image = fragrance.image;
@@ -74,299 +88,350 @@ export component EditFragrance inherits Rectangle {
         }
     }
 
-    background: #181818;
+    background: Theme.bg-app;
 
     ScrollView {
         VerticalBox {
-            padding: 30px;
-            spacing: 15px;
-
-            Text {
-                text: "Edit Fragrance";
-                font-size: 32px;
-                color: white;
-            }
-
-            HorizontalBox {
-                spacing: 20px;
-
-                Rectangle {
-                    width: root.preview_size;
-                    height: root.preview_size;
-                    clip: true;
-                    border-radius: 8px;
-                    background: #000000;
-
-                    Image {
-                        source: root.preview_image;
-                        width: root.preview_size * root.scale;
-                        height: root.preview_size * root.scale;
-                        x: (root.preview_size - self.width) / 2 + root.offset_x;
-                        y: (root.preview_size - self.height) / 2 + root.offset_y;
-                        image-fit: contain;
-                    }
-
-                    TouchArea {
-                        width: 100%;
-                        height: 100%;
-
-                        moved => {
-                            if (self.pressed) {
-                                root.offset_x = root.drag_start_offset_x + (self.mouse-x - self.pressed-x);
-                                root.offset_y = root.drag_start_offset_y + (self.mouse-y - self.pressed-y);
-                            }
-                        }
-
-                        pointer-event(event) => {
-                            if (event.kind == PointerEventKind.down) {
-                                root.drag_start_offset_x = root.offset_x;
-                                root.drag_start_offset_y = root.offset_y;
-                            }
-                        }
-
-                        scroll-event(event) => {
-                            root.scale = max(0.2, min(5.0, root.scale + (event.delta-y / 1px) / 1000));
-                            accept
-                        }
-                    }
-                }
-
-                VerticalBox {
-                    spacing: 10px;
-
-                    Button {
-                        text: "Change Image";
-
-                        clicked => {
-                            root.apply-image-selection(root.choose_image_requested());
-                        }
-                    }
-
-                    Button {
-                        text: "Reset Position/Zoom";
-
-                        clicked => {
-                            root.offset_x = 0px;
-                            root.offset_y = 0px;
-                            root.scale = 1.0;
-                        }
-                    }
-
-                    Text {
-                        text: "Drag image to reposition, scroll to zoom";
-                        color: #aaaaaa;
-                        font-size: 12px;
-                        wrap: word-wrap;
-                    }
-                }
-            }
-
-            LineEdit {
-                text: root.brand;
-                placeholder-text: "Brand";
-                edited => { root.brand = self.text; }
-            }
-
-            LineEdit {
-                text: root.name;
-                placeholder-text: "Name";
-                edited => { root.name = self.text; }
-            }
+            padding: Theme.space-lg;
+            spacing: Theme.space-lg;
 
             VerticalBox {
-                spacing: 5px;
+                spacing: 2px;
 
                 Text {
-                    text: "Ratings";
-                    color: white;
-                    font-size: 16px;
+                    text: "Edit Fragrance";
+                    font-size: 34px;
+                    font-weight: 800;
+                    color: Theme.text-primary;
+                    horizontal-alignment: center;
                 }
 
-                for entry[i] in root.ratings : VerticalBox {
-                    spacing: 3px;
+                Text {
+                    text: root.brand + " " + root.name;
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: Theme.text-secondary;
+                    horizontal-alignment: center;
+                }
+            }
+
+            SectionCard {
+                VerticalBox {
+                    padding: Theme.space-md;
+                    spacing: Theme.space-sm;
+
+                    SectionLabel {
+                        text: "Image";
+                    }
 
                     HorizontalBox {
-                        spacing: 10px;
+                        spacing: Theme.space-md;
 
-                        Text {
-                            text: entry.user_name + ":";
-                            color: white;
-                            font-size: 14px;
-                            vertical-alignment: center;
-                            width: 100px;
-                        }
+                        Rectangle {
+                            width: root.preview_size;
+                            height: root.preview_size;
+                            clip: true;
+                            border-radius: Theme.radius-md;
+                            background: #000000;
 
-                        LineEdit {
-                            width: 55px;
-                            text: entry.rating;
+                            Image {
+                                source: root.preview_image;
+                                width: root.preview_size * root.scale;
+                                height: root.preview_size * root.scale;
+                                x: (root.preview_size - self.width) / 2 + root.offset_x;
+                                y: (root.preview_size - self.height) / 2 + root.offset_y;
+                                image-fit: contain;
+                            }
 
-                            edited => {
-                                root.ratings[i].rating = max(0.0, min(10.0, self.text.to-float()));
+                            TouchArea {
+                                width: 100%;
+                                height: 100%;
+
+                                moved => {
+                                    if (self.pressed) {
+                                        root.offset_x = root.drag_start_offset_x + (self.mouse-x - self.pressed-x);
+                                        root.offset_y = root.drag_start_offset_y + (self.mouse-y - self.pressed-y);
+                                    }
+                                }
+
+                                pointer-event(event) => {
+                                    if (event.kind == PointerEventKind.down) {
+                                        root.drag_start_offset_x = root.offset_x;
+                                        root.drag_start_offset_y = root.offset_y;
+                                    }
+                                }
+
+                                scroll-event(event) => {
+                                    root.scale = max(0.2, min(5.0, root.scale + (event.delta-y / 1px) / 1000));
+                                    accept
+                                }
                             }
                         }
 
-                        Text {
-                            text: "/ 10";
-                            color: white;
-                            font-size: 14px;
-                            vertical-alignment: center;
+                        VerticalBox {
+                            spacing: Theme.space-sm;
+
+                            Button {
+                                text: "Change Image";
+
+                                clicked => {
+                                    root.apply-image-selection(root.choose_image_requested());
+                                }
+                            }
+
+                            Button {
+                                text: "Reset Position/Zoom";
+
+                                clicked => {
+                                    root.offset_x = 0px;
+                                    root.offset_y = 0px;
+                                    root.scale = 1.0;
+                                }
+                            }
+
+                            Text {
+                                text: "Drag image to reposition, scroll to zoom";
+                                color: Theme.text-secondary;
+                                font-size: 12px;
+                                wrap: word-wrap;
+                            }
                         }
                     }
+                }
+            }
 
-                    Slider {
-                        minimum: 0;
-                        maximum: 10;
-                        value: entry.rating;
+            SectionCard {
+                VerticalBox {
+                    padding: Theme.space-md;
+                    spacing: Theme.space-sm;
 
-                        changed(new-value) => {
-                            root.ratings[i].rating = round(new-value * 10) / 10;
+                    SectionLabel {
+                        text: "Basic Info";
+                    }
+
+                    LineEdit {
+                        text: root.brand;
+                        placeholder-text: "Brand";
+                        edited => { root.brand = self.text; }
+                    }
+
+                    LineEdit {
+                        text: root.name;
+                        placeholder-text: "Name";
+                        edited => { root.name = self.text; }
+                    }
+
+                    LineEdit {
+                        text: root.concentration;
+                        placeholder-text: "Concentration";
+                        edited => { root.concentration = self.text; }
+                    }
+
+                    LineEdit {
+                        text: root.projection;
+                        placeholder-text: "Projection";
+                        edited => { root.projection = self.text; }
+                    }
+
+                    LineEdit {
+                        text: root.longevity;
+                        placeholder-text: "Longevity";
+                        edited => { root.longevity = self.text; }
+                    }
+
+                    LineEdit {
+                        text: root.price;
+                        placeholder-text: "Price";
+                        edited => { root.price = self.text; }
+                    }
+
+                    LineEdit {
+                        text: root.purchase_date;
+                        placeholder-text: "Purchase Date";
+                        edited => { root.purchase_date = self.text; }
+                    }
+
+                    LineEdit {
+                        text: root.notes;
+                        placeholder-text: "Notes";
+                        edited => { root.notes = self.text; }
+                    }
+                }
+            }
+
+            SectionCard {
+                VerticalBox {
+                    padding: Theme.space-md;
+                    spacing: Theme.space-sm;
+
+                    SectionLabel {
+                        text: "Ratings";
+                    }
+
+                    for entry[i] in root.ratings : VerticalBox {
+                        spacing: 3px;
+
+                        HorizontalBox {
+                            spacing: Theme.space-sm;
+
+                            Text {
+                                text: entry.user_name + ":";
+                                color: Theme.text-primary;
+                                font-size: 14px;
+                                vertical-alignment: center;
+                                width: 100px;
+                            }
+
+                            LineEdit {
+                                width: 55px;
+                                text: entry.rating;
+
+                                edited => {
+                                    root.ratings[i].rating = max(0.0, min(10.0, self.text.to-float()));
+                                }
+                            }
+
+                            Text {
+                                text: "/ 10";
+                                color: Theme.text-secondary;
+                                font-size: 14px;
+                                vertical-alignment: center;
+                            }
+                        }
+
+                        Slider {
+                            minimum: 0;
+                            maximum: 10;
+                            value: entry.rating;
+
+                            changed(new-value) => {
+                                root.ratings[i].rating = round(new-value * 10) / 10;
+                            }
                         }
                     }
                 }
             }
 
-            LineEdit {
-                text: root.concentration;
-                placeholder-text: "Concentration";
-                edited => { root.concentration = self.text; }
-            }
+            SectionCard {
+                VerticalBox {
+                    padding: Theme.space-md;
+                    spacing: Theme.space-sm;
 
-            LineEdit {
-                text: root.projection;
-                placeholder-text: "Projection";
-                edited => { root.projection = self.text; }
-            }
-
-            LineEdit {
-                text: root.longevity;
-                placeholder-text: "Longevity";
-                edited => { root.longevity = self.text; }
-            }
-
-            LineEdit {
-                text: root.price;
-                placeholder-text: "Price";
-                edited => { root.price = self.text; }
-            }
-
-            LineEdit {
-                text: root.purchase_date;
-                placeholder-text: "Purchase Date";
-                edited => { root.purchase_date = self.text; }
-            }
-
-            LineEdit {
-                text: root.notes;
-                placeholder-text: "Notes";
-                edited => { root.notes = self.text; }
-            }
-
-            VerticalBox {
-                spacing: 5px;
-
-                Text {
-                    text: "Seasons";
-                    color: white;
-                    font-size: 16px;
-                }
-
-                HorizontalBox {
-                    spacing: 15px;
-
-                    CheckBox {
-                        text: "Spring";
-                        checked <=> root.season_spring;
+                    SectionLabel {
+                        text: "Seasons";
                     }
 
-                    CheckBox {
-                        text: "Summer";
-                        checked <=> root.season_summer;
-                    }
+                    HorizontalBox {
+                        spacing: Theme.space-sm;
 
-                    CheckBox {
-                        text: "Fall";
-                        checked <=> root.season_fall;
-                    }
+                        CheckBox {
+                            text: "Spring";
+                            checked <=> root.season_spring;
+                        }
 
-                    CheckBox {
-                        text: "Winter";
-                        checked <=> root.season_winter;
+                        CheckBox {
+                            text: "Summer";
+                            checked <=> root.season_summer;
+                        }
+
+                        CheckBox {
+                            text: "Fall";
+                            checked <=> root.season_fall;
+                        }
+
+                        CheckBox {
+                            text: "Winter";
+                            checked <=> root.season_winter;
+                        }
                     }
                 }
             }
 
-            VerticalBox {
-                spacing: 5px;
+            SectionCard {
+                VerticalBox {
+                    padding: Theme.space-md;
+                    spacing: Theme.space-sm;
 
-                Text {
-                    text: "Category";
-                    color: white;
-                    font-size: 16px;
-                }
-
-                HorizontalBox {
-                    spacing: 15px;
-
-                    CategoryChip {
-                        label: "Perfume";
-                        selected: root.category == "Perfume";
-                        selected_requested => { root.category = "Perfume"; }
+                    SectionLabel {
+                        text: "Category";
                     }
 
-                    CategoryChip {
-                        label: "Unisex";
-                        selected: root.category == "Unisex";
-                        selected_requested => { root.category = "Unisex"; }
-                    }
+                    HorizontalBox {
+                        spacing: Theme.space-sm;
 
-                    CategoryChip {
-                        label: "Cologne";
-                        selected: root.category == "Cologne";
-                        selected_requested => { root.category = "Cologne"; }
-                    }
-                }
-            }
+                        CategoryChip {
+                            label: "Perfume";
+                            selected: root.category == "Perfume";
+                            selected_requested => { root.category = "Perfume"; }
+                        }
 
-            VerticalBox {
-                spacing: 5px;
+                        CategoryChip {
+                            label: "Unisex";
+                            selected: root.category == "Unisex";
+                            selected_requested => { root.category = "Unisex"; }
+                        }
 
-                Text {
-                    text: "List";
-                    color: white;
-                    font-size: 16px;
-                }
-
-                HorizontalBox {
-                    spacing: 15px;
-
-                    CategoryChip {
-                        label: "Collection";
-                        selected: !root.is_wishlist;
-                        selected_requested => { root.is_wishlist = false; }
-                    }
-
-                    CategoryChip {
-                        label: "Wishlist";
-                        selected: root.is_wishlist;
-                        selected_requested => { root.is_wishlist = true; }
+                        CategoryChip {
+                            label: "Cologne";
+                            selected: root.category == "Cologne";
+                            selected_requested => { root.category = "Cologne"; }
+                        }
                     }
                 }
             }
 
-            LineEdit {
-                text: root.my_notes;
-                placeholder-text: "My Notes";
-                edited => { root.my_notes = self.text; }
+            SectionCard {
+                VerticalBox {
+                    padding: Theme.space-md;
+                    spacing: Theme.space-sm;
+
+                    SectionLabel {
+                        text: "List";
+                    }
+
+                    HorizontalBox {
+                        spacing: Theme.space-sm;
+
+                        CategoryChip {
+                            label: "Collection";
+                            selected: !root.is_wishlist;
+                            selected_requested => { root.is_wishlist = false; }
+                        }
+
+                        CategoryChip {
+                            label: "Wishlist";
+                            selected: root.is_wishlist;
+                            selected_requested => { root.is_wishlist = true; }
+                        }
+                    }
+                }
             }
 
-            LineEdit {
-                text: root.partner_notes;
-                placeholder-text: "Partner Notes";
-                edited => { root.partner_notes = self.text; }
+            SectionCard {
+                VerticalBox {
+                    padding: Theme.space-md;
+                    spacing: Theme.space-sm;
+
+                    SectionLabel {
+                        text: "Personal Notes";
+                    }
+
+                    LineEdit {
+                        text: root.my_notes;
+                        placeholder-text: "My Notes";
+                        edited => { root.my_notes = self.text; }
+                    }
+
+                    LineEdit {
+                        text: root.partner_notes;
+                        placeholder-text: "Partner Notes";
+                        edited => { root.partner_notes = self.text; }
+                    }
+                }
             }
 
             HorizontalBox {
-                spacing: 20px;
+                spacing: Theme.space-md;
 
                 Button {
                     text: "Save";

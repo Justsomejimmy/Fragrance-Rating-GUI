@@ -1,6 +1,41 @@
-import { VerticalBox, HorizontalBox, Button } from "std-widgets.slint";
+import { VerticalBox, HorizontalBox, ScrollView, Button } from "std-widgets.slint";
 import { FragranceData } from "../types.slint";
+import { Theme } from "../theme.slint";
 
+component InfoRow inherits HorizontalBox {
+    in property <string> label;
+    in property <string> value;
+    spacing: Theme.space-sm;
+
+    Text {
+        text: root.label;
+        color: Theme.text-secondary;
+        font-size: 13px;
+        width: 140px;
+    }
+
+    Text {
+        text: root.value;
+        color: Theme.text-primary;
+        font-size: 14px;
+        font-weight: 600;
+        wrap: word-wrap;
+        horizontal-stretch: 1;
+    }
+}
+
+component SectionCard inherits Rectangle {
+    background: Theme.bg-card;
+    border-radius: Theme.radius-lg;
+    border-width: 1px;
+    border-color: Theme.border;
+}
+
+component SectionLabel inherits Text {
+    color: Theme.text-primary;
+    font-size: 16px;
+    font-weight: 700;
+}
 
 export component FragranceDetails inherits Rectangle {
     in property <FragranceData> fragrance;
@@ -10,104 +45,190 @@ export component FragranceDetails inherits Rectangle {
     callback edit_requested();
     callback delete_requested();
 
-    background: #181818;
+    background: Theme.bg-app;
 
-    VerticalBox {
-        padding: 30px;
-        spacing: 12px;
-
-        Button {
-            text: "← Back";
-
-            clicked => {
-                root.back_requested();
-            }
-        }
-
-        Text {
-            text: fragrance.brand + " " + fragrance.name;
-            color: white;
-            font-size: 32px;
-        }
-
-        Text {
-            text: fragrance.category;
-            color: #66aaff;
-            font-size: 16px;
-        }
-
-        Text {
-            text: "Concentration: " + fragrance.concentration;
-            color: white;
-        }
-
-        Text {
-            text: "Projection: " + fragrance.projection;
-            color: white;
-        }
-
-        Text {
-            text: "Longevity: " + fragrance.longevity;
-            color: white;
-        }
-
-        Text {
-            text: "Average Rating: ⭐ " + fragrance.rating;
-            color: white;
-        }
-
-        for entry in fragrance.ratings : Text {
-            text: "  " + entry.user_name + ": ⭐ " + entry.rating;
-            color: #aaaaaa;
-            font-size: 13px;
-        }
-
-        Text {
-            text: "Price: " + fragrance.price;
-            color: white;
-        }
-
-        Text {
-            text: "Purchased: " + fragrance.purchase_date;
-            color: white;
-        }
-
-        Text {
-            text: "Notes: " + fragrance.notes;
-            color: white;
-        }
-
-        Text {
-            text: "Seasons: " + fragrance.seasons;
-            color: #aaaaaa;
-        }
-
-        Text {
-            text: "My Notes: " + fragrance.my_notes;
-            color: white;
-        }
-
-        Text {
-            text: "Partner Notes: " + fragrance.partner_notes;
-            color: white;
-        }
-
-        HorizontalBox {
-            spacing: 20px;
+    ScrollView {
+        VerticalBox {
+            padding: Theme.space-lg;
+            spacing: Theme.space-lg;
 
             Button {
-                text: "Edit";
+                text: "← Back";
 
                 clicked => {
-                    root.edit_requested();
+                    root.back_requested();
                 }
             }
 
-            Button {
-                text: "Delete";
+            VerticalBox {
+                spacing: Theme.space-xs;
 
-                clicked => {
-                    root.show-delete-confirmation = true;
+                Text {
+                    text: fragrance.brand;
+                    color: Theme.text-secondary;
+                    font-size: 14px;
+                    horizontal-alignment: center;
+                }
+
+                Text {
+                    text: fragrance.name;
+                    color: Theme.text-primary;
+                    font-size: 30px;
+                    font-weight: 800;
+                    wrap: word-wrap;
+                    horizontal-alignment: center;
+                }
+
+                Rectangle {
+                    width: 90px;
+                    height: 30px;
+                    background: Theme.accent-soft;
+                    border-radius: 15px;
+
+                    Text {
+                        text: fragrance.category;
+                        color: Theme.accent;
+                        font-size: 13px;
+                        font-weight: 700;
+                        width: 100%;
+                        height: 100%;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+
+            SectionCard {
+                VerticalBox {
+                    padding: Theme.space-md;
+                    spacing: Theme.space-sm;
+
+                    SectionLabel {
+                        text: "Details";
+                    }
+
+                    InfoRow {
+                        label: "Concentration";
+                        value: fragrance.concentration;
+                    }
+
+                    InfoRow {
+                        label: "Projection";
+                        value: fragrance.projection;
+                    }
+
+                    InfoRow {
+                        label: "Longevity";
+                        value: fragrance.longevity;
+                    }
+
+                    InfoRow {
+                        label: "Price";
+                        value: fragrance.price;
+                    }
+
+                    InfoRow {
+                        label: "Purchased";
+                        value: fragrance.purchase_date;
+                    }
+
+                    InfoRow {
+                        label: "Seasons";
+                        value: fragrance.seasons;
+                    }
+                }
+            }
+
+            SectionCard {
+                VerticalBox {
+                    padding: Theme.space-md;
+                    spacing: Theme.space-sm;
+
+                    SectionLabel {
+                        text: "Ratings";
+                    }
+
+                    HorizontalBox {
+                        spacing: Theme.space-sm;
+
+                        Text {
+                            text: "Average";
+                            color: Theme.text-secondary;
+                            font-size: 13px;
+                            width: 140px;
+                        }
+
+                        Text {
+                            text: "⭐ " + fragrance.rating;
+                            color: Theme.accent;
+                            font-size: 16px;
+                            font-weight: 700;
+                        }
+                    }
+
+                    for entry in fragrance.ratings : HorizontalBox {
+                        spacing: Theme.space-sm;
+
+                        Text {
+                            text: entry.user_name;
+                            color: Theme.text-secondary;
+                            font-size: 13px;
+                            width: 140px;
+                        }
+
+                        Text {
+                            text: "⭐ " + entry.rating;
+                            color: Theme.text-primary;
+                            font-size: 14px;
+                            font-weight: 600;
+                        }
+                    }
+                }
+            }
+
+            SectionCard {
+                VerticalBox {
+                    padding: Theme.space-md;
+                    spacing: Theme.space-sm;
+
+                    SectionLabel {
+                        text: "Notes";
+                    }
+
+                    InfoRow {
+                        label: "Notes";
+                        value: fragrance.notes;
+                    }
+
+                    InfoRow {
+                        label: "My Notes";
+                        value: fragrance.my_notes;
+                    }
+
+                    InfoRow {
+                        label: "Partner Notes";
+                        value: fragrance.partner_notes;
+                    }
+                }
+            }
+
+            HorizontalBox {
+                spacing: Theme.space-md;
+
+                Button {
+                    text: "Edit";
+
+                    clicked => {
+                        root.edit_requested();
+                    }
+                }
+
+                Button {
+                    text: "Delete";
+
+                    clicked => {
+                        root.show-delete-confirmation = true;
+                    }
                 }
             }
         }
@@ -126,28 +247,31 @@ export component FragranceDetails inherits Rectangle {
             x: (parent.width - self.width) / 2;
             y: (parent.height - self.height) / 2;
 
-            background: #252525;
-            border-radius: 12px;
+            background: Theme.bg-card;
+            border-radius: Theme.radius-lg;
+            border-width: 1px;
+            border-color: Theme.border;
 
             VerticalBox {
-                padding: 25px;
-                spacing: 20px;
+                padding: Theme.space-lg;
+                spacing: Theme.space-md;
 
                 Text {
                     text: "Delete this fragrance?";
-                    color: white;
+                    color: Theme.text-primary;
                     font-size: 22px;
+                    font-weight: 700;
                     horizontal-alignment: center;
                 }
 
                 Text {
                     text: "This action cannot be undone.";
-                    color: #aaaaaa;
+                    color: Theme.text-secondary;
                     horizontal-alignment: center;
                 }
 
                 HorizontalBox {
-                    spacing: 15px;
+                    spacing: Theme.space-sm;
 
                     Button {
                         text: "Cancel";

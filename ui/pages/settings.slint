@@ -1,5 +1,19 @@
 import { VerticalBox, HorizontalBox, Button, LineEdit, ScrollView } from "std-widgets.slint";
 import { AppUser } from "../types.slint";
+import { Theme } from "../theme.slint";
+
+component SectionCard inherits Rectangle {
+    background: Theme.bg-card;
+    border-radius: Theme.radius-lg;
+    border-width: 1px;
+    border-color: Theme.border;
+}
+
+component SectionLabel inherits Text {
+    color: Theme.text-primary;
+    font-size: 16px;
+    font-weight: 700;
+}
 
 export component SettingsPage inherits Rectangle {
     in property <[AppUser]> users;
@@ -10,73 +24,94 @@ export component SettingsPage inherits Rectangle {
 
     property <string> new_user_name;
 
-    background: #181818;
+    background: Theme.bg-app;
 
     VerticalBox {
-        padding: 30px;
-        spacing: 20px;
+        padding: Theme.space-lg;
+        spacing: Theme.space-lg;
 
-        Text {
-            text: "Settings";
-            font-size: 32px;
-            color: white;
+        VerticalBox {
+            spacing: 2px;
+
+            Text {
+                text: "Settings";
+                font-size: 34px;
+                font-weight: 800;
+                color: Theme.text-primary;
+                horizontal-alignment: center;
+            }
+
+            Text {
+                text: "Manage the people rating your fragrances";
+                font-size: 14px;
+                font-weight: 500;
+                color: Theme.text-secondary;
+                horizontal-alignment: center;
+            }
         }
 
-        Text {
-            text: "Users";
-            font-size: 22px;
-            color: white;
-        }
-
-        Text {
-            text: "Press Enter after editing a name to save it.";
-            color: #aaaaaa;
-            font-size: 12px;
-        }
-
-        ScrollView {
-            height: 300px;
-
+        SectionCard {
             VerticalBox {
-                spacing: 10px;
+                padding: Theme.space-md;
+                spacing: Theme.space-sm;
 
-                for user in root.users : HorizontalBox {
-                    spacing: 10px;
+                SectionLabel {
+                    text: "Users";
+                }
 
-                    LineEdit {
-                        text: user.name;
+                Text {
+                    text: "Press Enter after editing a name to save it.";
+                    color: Theme.text-muted;
+                    font-size: 12px;
+                }
 
-                        accepted(new-name) => {
-                            root.update_user_requested(user.id, new-name);
-                        }
-                    }
+                ScrollView {
+                    height: 260px;
 
-                    Button {
-                        text: "Remove";
+                    VerticalBox {
+                        spacing: Theme.space-sm;
 
-                        clicked => {
-                            root.delete_user_requested(user.id);
+                        for user in root.users : HorizontalBox {
+                            spacing: Theme.space-sm;
+
+                            LineEdit {
+                                text: user.name;
+                                horizontal-stretch: 1;
+
+                                accepted(new-name) => {
+                                    root.update_user_requested(user.id, new-name);
+                                }
+                            }
+
+                            Button {
+                                text: "Remove";
+
+                                clicked => {
+                                    root.delete_user_requested(user.id);
+                                }
+                            }
                         }
                     }
                 }
-            }
-        }
 
-        HorizontalBox {
-            spacing: 10px;
+                HorizontalBox {
+                    spacing: Theme.space-sm;
 
-            LineEdit {
-                placeholder-text: "New user name";
-                text <=> root.new_user_name;
-            }
+                    LineEdit {
+                        horizontal-stretch: 1;
+                        placeholder-text: "New user name";
+                        text <=> root.new_user_name;
+                    }
 
-            Button {
-                text: "Add User";
+                    Button {
+                        text: "Add User";
 
-                clicked => {
-                    if (root.new_user_name != "") {
-                        root.add_user_requested(root.new_user_name);
-                        root.new_user_name = "";
+                        clicked => {
+                            if (root.new_user_name != "") {
+                                root.add_user_requested(root.new_user_name);
+                                root.new_user_name = "";
+                            }
+                        }
                     }
                 }
             }

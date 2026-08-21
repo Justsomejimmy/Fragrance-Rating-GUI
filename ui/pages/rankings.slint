@@ -1,5 +1,6 @@
 import { VerticalBox, HorizontalBox, ScrollView, ComboBox } from "std-widgets.slint";
 import { RankingItem } from "../types.slint";
+import { Theme } from "../theme.slint";
 
 export component RankingsPage inherits Rectangle {
     in property <[RankingItem]> ranking_items;
@@ -12,71 +13,94 @@ export component RankingsPage inherits Rectangle {
     property <string> category_option: "Perfume";
     property <string> user_option: "";
 
-    property <length> bar_max_width: 300px;
+    property <length> bar_max_width: 280px;
 
-    background: #181818;
+    background: Theme.bg-app;
 
     VerticalBox {
-        padding: 30px;
-        spacing: 20px;
+        padding: Theme.space-lg;
+        spacing: Theme.space-lg;
 
-        Text {
-            text: "Rankings";
-            font-size: 40px;
-            color: white;
+        VerticalBox {
+            spacing: 2px;
+
+            Text {
+                text: "Rankings";
+                font-size: 34px;
+                font-weight: 800;
+                color: Theme.text-primary;
+                horizontal-alignment: center;
+            }
+
+            Text {
+                text: "Your top 10 fragrances";
+                font-size: 14px;
+                font-weight: 500;
+                color: Theme.text-secondary;
+                horizontal-alignment: center;
+            }
         }
 
-        HorizontalBox {
-            spacing: 15px;
+        Rectangle {
+            background: Theme.bg-card;
+            border-radius: Theme.radius-lg;
+            border-width: 1px;
+            border-color: Theme.border;
+            height: 70px;
 
-            ComboBox {
-                width: 180px;
-                model: ["Overall", "Season", "Category", "Rating by User"];
-                current-value <=> root.mode;
+            HorizontalBox {
+                padding: Theme.space-sm;
+                spacing: Theme.space-sm;
 
-                selected => {
-                    if (root.mode == "Overall") {
-                        root.rank_requested("Overall", "");
-                    } else if (root.mode == "Season") {
-                        root.rank_requested("Season", root.season_option);
-                    } else if (root.mode == "Category") {
-                        root.rank_requested("Category", root.category_option);
-                    } else if (root.mode == "Rating by User") {
-                        if (root.user_names.length > 0) {
-                            root.user_option = root.user_names[0];
-                            root.rank_requested("User", root.user_option);
+                ComboBox {
+                    width: 180px;
+                    model: ["Overall", "Season", "Category", "Rating by User"];
+                    current-value <=> root.mode;
+
+                    selected => {
+                        if (root.mode == "Overall") {
+                            root.rank_requested("Overall", "");
+                        } else if (root.mode == "Season") {
+                            root.rank_requested("Season", root.season_option);
+                        } else if (root.mode == "Category") {
+                            root.rank_requested("Category", root.category_option);
+                        } else if (root.mode == "Rating by User") {
+                            if (root.user_names.length > 0) {
+                                root.user_option = root.user_names[0];
+                                root.rank_requested("User", root.user_option);
+                            }
                         }
                     }
                 }
-            }
 
-            if root.mode == "Season" : ComboBox {
-                width: 160px;
-                model: ["Spring", "Summer", "Fall", "Winter"];
-                current-value <=> root.season_option;
+                if root.mode == "Season" : ComboBox {
+                    width: 160px;
+                    model: ["Spring", "Summer", "Fall", "Winter"];
+                    current-value <=> root.season_option;
 
-                selected => {
-                    root.rank_requested("Season", root.season_option);
+                    selected => {
+                        root.rank_requested("Season", root.season_option);
+                    }
                 }
-            }
 
-            if root.mode == "Category" : ComboBox {
-                width: 160px;
-                model: ["Perfume", "Unisex", "Cologne"];
-                current-value <=> root.category_option;
+                if root.mode == "Category" : ComboBox {
+                    width: 160px;
+                    model: ["Perfume", "Unisex", "Cologne"];
+                    current-value <=> root.category_option;
 
-                selected => {
-                    root.rank_requested("Category", root.category_option);
+                    selected => {
+                        root.rank_requested("Category", root.category_option);
+                    }
                 }
-            }
 
-            if root.mode == "Rating by User" : ComboBox {
-                width: 160px;
-                model: root.user_names;
-                current-value <=> root.user_option;
+                if root.mode == "Rating by User" : ComboBox {
+                    width: 160px;
+                    model: root.user_names;
+                    current-value <=> root.user_option;
 
-                selected => {
-                    root.rank_requested("User", root.user_option);
+                    selected => {
+                        root.rank_requested("User", root.user_option);
+                    }
                 }
             }
         }
@@ -85,73 +109,108 @@ export component RankingsPage inherits Rectangle {
             vertical-stretch: 1;
 
             VerticalBox {
-                spacing: 12px;
+                spacing: Theme.space-sm;
 
-                for item[i] in root.ranking_items : HorizontalBox {
-                    spacing: 15px;
-                    height: 70px;
+                for item[i] in root.ranking_items : Rectangle {
+                    background: Theme.bg-card;
+                    border-radius: Theme.radius-md;
+                    border-width: 1px;
+                    border-color: Theme.border;
+                    height: 76px;
 
-                    Text {
-                        text: (i + 1) + ".";
-                        color: white;
-                        font-size: 20px;
-                        width: 35px;
-                        vertical-alignment: center;
-                    }
+                    HorizontalBox {
+                        padding: Theme.space-sm;
+                        spacing: Theme.space-sm;
 
-                    Rectangle {
-                        width: 60px;
-                        height: 60px;
-                        clip: true;
-                        border-radius: 6px;
-                        background: #000000;
-
-                        Image {
-                            source: item.image;
-                            width: 60px * item.image_scale;
-                            height: 60px * item.image_scale;
-                            x: (60px - self.width) / 2 + item.image_offset_x * 1px;
-                            y: (60px - self.height) / 2 + item.image_offset_y * 1px;
-                            image-fit: contain;
+                        Text {
+                            text: (i + 1) + ".";
+                            color: Theme.text-secondary;
+                            font-size: 18px;
+                            font-weight: 700;
+                            width: 32px;
+                            vertical-alignment: center;
                         }
-                    }
-
-                    Text {
-                        text: item.brand + " - " + item.name;
-                        color: white;
-                        font-size: 16px;
-                        wrap: word-wrap;
-                        horizontal-stretch: 1;
-                        vertical-alignment: center;
-                    }
-
-                    Rectangle {
-                        width: root.bar_max_width;
-                        height: 20px;
-                        background: #2a2a2a;
-                        border-radius: 4px;
 
                         Rectangle {
-                            width: root.bar_max_width * (item.display_rating / 10);
-                            height: 20px;
-                            background: #66aaff;
-                            border-radius: 4px;
-                        }
-                    }
+                            width: 56px;
+                            height: 56px;
+                            clip: true;
+                            border-radius: Theme.radius-sm;
+                            background: #000000;
 
-                    Text {
-                        text: item.display_rating;
-                        color: white;
-                        font-size: 14px;
-                        width: 40px;
-                        vertical-alignment: center;
+                            Image {
+                                source: item.image;
+                                width: 56px * item.image_scale;
+                                height: 56px * item.image_scale;
+                                x: (56px - self.width) / 2 + item.image_offset_x * 1px;
+                                y: (56px - self.height) / 2 + item.image_offset_y * 1px;
+                                image-fit: cover;
+                            }
+                        }
+
+                        VerticalBox {
+                            horizontal-stretch: 1;
+                            alignment: center;
+                            spacing: 2px;
+
+                            Text {
+                                text: item.brand;
+                                color: Theme.text-secondary;
+                                font-size: 12px;
+                            }
+
+                            Text {
+                                text: item.name;
+                                color: Theme.text-primary;
+                                font-size: 16px;
+                                font-weight: 700;
+                                wrap: word-wrap;
+                                overflow: elide;
+                            }
+                        }
+
+                        Rectangle {
+                            width: root.bar_max_width;
+                            height: 18px;
+                            background: Theme.bg-card-alt;
+                            border-radius: 9px;
+                            clip: true;
+
+                            Rectangle {
+                                x: 0px;
+                                y: 0px;
+                                width: root.bar_max_width * (item.display_rating / 10);
+                                height: 18px;
+                                background: Theme.accent;
+                                border-radius: 9px;
+                            }
+                        }
+
+                        Text {
+                            text: item.display_rating;
+                            color: Theme.text-primary;
+                            font-size: 14px;
+                            font-weight: 700;
+                            width: 40px;
+                            vertical-alignment: center;
+                        }
                     }
                 }
 
-                if root.ranking_items.length == 0 : Text {
-                    text: "No fragrances to rank yet.";
-                    color: #aaaaaa;
-                    font-size: 16px;
+                if root.ranking_items.length == 0 : Rectangle {
+                    background: Theme.bg-card;
+                    border-radius: Theme.radius-lg;
+                    border-width: 1px;
+                    border-color: Theme.border;
+                    height: 100px;
+
+                    Text {
+                        text: "No fragrances to rank yet.";
+                        color: Theme.text-secondary;
+                        font-size: 16px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
                 }
             }
         }

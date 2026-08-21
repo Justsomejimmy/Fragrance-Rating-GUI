@@ -2,67 +2,91 @@ import { VerticalBox, HorizontalBox, ScrollView, ComboBox, LineEdit, Button } fr
 import { FragranceCard } from "../components/fragrance_card.slint";
 import { FragranceData, FragranceRow } from "../types.slint";
 import { AddFragranceCard } from "../components/add_fragrance_card.slint";
+import { Theme } from "../theme.slint";
 
 export component CollectionPage inherits Rectangle {
     in-out property <string> sort-option: "Rating: High → Low";
     in-out property <string> search-text: "";
     in property <image> fragrance-image;
     in property <[FragranceRow]> rows;
-    
+
     callback add_requested();
     callback fragrance_clicked(FragranceData);
     callback search_requested(string);
     callback sort_requested(string);
-    background: #181818;
+
+    background: Theme.bg-app;
 
     VerticalBox {
-        padding: 30px;
-        spacing: 20px;
+        padding: Theme.space-lg;
+        spacing: Theme.space-lg;
 
-        HorizontalBox {
-            spacing: 20px;
+        VerticalBox {
+            spacing: 2px;
 
             Text {
                 text: "Collection";
-                font-size: 40px;
-                color: white;
-                vertical-alignment: center;
+                font-size: 34px;
+                font-weight: 800;
+                color: Theme.text-primary;
+                horizontal-alignment: center;
             }
 
-            LineEdit {
-                width: 220px;
-                placeholder-text: "Search fragrances...";
-                text <=> root.search-text;
+            Text {
+                text: "Browse your fragrances";
+                font-size: 14px;
+                font-weight: 500;
+                color: Theme.text-secondary;
+                horizontal-alignment: center;
+            }
+        }
 
-                edited => {
-                    root.search_requested(self.text);
+        Rectangle {
+            background: Theme.bg-card;
+            border-radius: Theme.radius-lg;
+            border-width: 1px;
+            border-color: Theme.border;
+            height: 70px;
+
+            HorizontalBox {
+                padding: Theme.space-sm;
+                spacing: Theme.space-sm;
+
+                LineEdit {
+                    horizontal-stretch: 1;
+                    placeholder-text: "Search fragrances...";
+                    text <=> root.search-text;
+
+                    edited => {
+                        root.search_requested(self.text);
+                    }
                 }
-            }
 
-            Button {
-                width: 70px;
-                text: "Clear";
+                Button {
+                    width: 70px;
+                    text: "Clear";
 
-                clicked => {
-                    root.search-text = "";
-                    root.search_requested("");
+                    clicked => {
+                        root.search-text = "";
+                        root.search_requested("");
+                    }
                 }
-            }
 
-            ComboBox {
-                width: 160px;
+                ComboBox {
+                    width: 170px;
 
-                model: [
-                    "Rating: High → Low",
-                    "Rating: Low → High",
-                    "Name: A → Z",
-                    "Name: Z → A"
-                ];
+                    model: [
+                        "Rating: High → Low",
+                        "Rating: Low → High",
+                        "Name: A → Z",
+                        "Name: Z → A"
+                    ];
 
-                current-value <=> root.sort-option;
+                    current-value <=> root.sort-option;
 
-                selected => {
-                    root.sort_requested(root.sort-option);
+                    selected => {
+                        root.sort_requested(root.sort-option);
+                    }
                 }
             }
         }
@@ -71,10 +95,10 @@ export component CollectionPage inherits Rectangle {
             vertical-stretch: 1;
 
             VerticalBox {
-                spacing: 20px;
+                spacing: Theme.space-md;
 
                 if root.rows.length == 0 : HorizontalBox {
-                    spacing: 20px;
+                    spacing: Theme.space-md;
 
                     AddFragranceCard {
                         card_clicked => {
@@ -84,7 +108,7 @@ export component CollectionPage inherits Rectangle {
                 }
 
                 for row[i] in root.rows : HorizontalBox {
-                    spacing: 20px;
+                    spacing: Theme.space-md;
 
                     if i == 0 : AddFragranceCard {
                         card_clicked => {

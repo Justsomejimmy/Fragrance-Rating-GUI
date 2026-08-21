@@ -1,7 +1,8 @@
 import { VerticalBox, HorizontalBox, ScrollView } from "std-widgets.slint";
 import { FragranceCard } from "../components/fragrance_card.slint";
-import { FragranceData, FragranceRow } from "../types.slint";
 import { AddFragranceCard } from "../components/add_fragrance_card.slint";
+import { FragranceData, FragranceRow } from "../types.slint";
+import { Theme } from "../theme.slint";
 
 export component WishlistPage inherits Rectangle {
     in property <[FragranceRow]> rows;
@@ -9,26 +10,40 @@ export component WishlistPage inherits Rectangle {
     callback fragrance_clicked(FragranceData);
     callback add_requested();
 
-    background: #181818;
+    background: Theme.bg-app;
 
     VerticalBox {
-        padding: 30px;
-        spacing: 20px;
+        padding: Theme.space-lg;
+        spacing: Theme.space-lg;
 
-        Text {
-            text: "Wishlist";
-            font-size: 40px;
-            color: white;
+        VerticalBox {
+            spacing: 2px;
+
+            Text {
+                text: "Wishlist";
+                font-size: 34px;
+                font-weight: 800;
+                color: Theme.text-primary;
+                horizontal-alignment: center;
+            }
+
+            Text {
+                text: "Fragrances you're hoping to add";
+                font-size: 14px;
+                font-weight: 500;
+                color: Theme.text-secondary;
+                horizontal-alignment: center;
+            }
         }
 
         ScrollView {
             vertical-stretch: 1;
 
             VerticalBox {
-                spacing: 20px;
+                spacing: Theme.space-md;
 
                 if root.rows.length == 0 : HorizontalBox {
-                    spacing: 20px;
+                    spacing: Theme.space-md;
 
                     AddFragranceCard {
                         card_clicked => {
@@ -38,7 +53,7 @@ export component WishlistPage inherits Rectangle {
                 }
 
                 for row[i] in root.rows : HorizontalBox {
-                    spacing: 20px;
+                    spacing: Theme.space-md;
 
                     if i == 0 : AddFragranceCard {
                         card_clicked => {
@@ -66,7 +81,7 @@ export component WishlistPage inherits Rectangle {
 
                 if root.rows.length == 0 : Text {
                     text: "Your wishlist is empty.";
-                    color: #aaaaaa;
+                    color: Theme.text-secondary;
                     font-size: 16px;
                 }
             }
