@@ -1,6 +1,7 @@
 import { VerticalBox, HorizontalBox, Button } from "std-widgets.slint";
+import { Theme } from "../theme.slint";
 
-export component sidebar inherits Rectangle{
+export component sidebar inherits Rectangle {
     callback add_requested();
     callback dashboard_requested();
     callback collection_requested();
@@ -8,28 +9,61 @@ export component sidebar inherits Rectangle{
     callback rankings_requested();
     callback wishlist_requested();
 
-    width: 280px;
-    background: #1e1e1e;
+    in-out property <bool> collapsed: false;
+
+    width: root.collapsed ? 0px : 280px;
+    background: Theme.bg-sidebar;
+    clip: true;
+
+    animate width {
+        duration: 200ms;
+        easing: ease-in-out-sine;
+    }
 
     VerticalBox {
         padding: 20px;
         spacing: 15px;
 
-        Text {
-            text: "Fragrance Vault";
-            font-size: 35px;
-            color: white;
-            wrap: word-wrap;
-            horizontal-alignment: center;
-            vertical-alignment: center;
+        HorizontalBox {
+            spacing: 8px;
+
+            Text {
+                text: "Fragrance Vault";
+                font-size: 20px;
+                font-weight: 800;
+                color: Theme.text-primary;
+                wrap: word-wrap;
+                horizontal-stretch: 1;
+                vertical-alignment: center;
+            }
+
+            TouchArea {
+                width: 50px;
+                height: 50px;
+
+                clicked => {
+                    root.collapsed = true;
+                }
+
+                Text {
+                    text: "«";
+                    color: Theme.text-secondary;
+                    font-size: 20px;
+                    width: 100%;
+                    height: 100%;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
         }
 
         Rectangle {
-            height: 20px;
+            height: 10px;
         }
 
         Button {
             text: "🏠 Dashboard";
+
             clicked => {
                 root.dashboard_requested();
             }
@@ -37,6 +71,7 @@ export component sidebar inherits Rectangle{
 
         Button {
             text: "📚 Collection";
+
             clicked => {
                 root.collection_requested();
             }
@@ -44,6 +79,7 @@ export component sidebar inherits Rectangle{
 
         Button {
             text: "⭐ Rankings";
+
             clicked => {
                 root.rankings_requested();
             }
@@ -51,6 +87,7 @@ export component sidebar inherits Rectangle{
 
         Button {
             text: "❤️ Wishlist";
+
             clicked => {
                 root.wishlist_requested();
             }
@@ -58,6 +95,7 @@ export component sidebar inherits Rectangle{
 
         Button {
             text: "➕ Add Fragrance";
+
             clicked => {
                 root.add_requested();
             }
@@ -65,6 +103,7 @@ export component sidebar inherits Rectangle{
 
         Button {
             text: "⚙ Settings";
+
             clicked => {
                 root.settings_requested();
             }

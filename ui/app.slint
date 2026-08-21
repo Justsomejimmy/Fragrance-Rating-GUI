@@ -9,6 +9,7 @@ import { EditFragrance } from "./pages/edit_fragrance.slint";
 import { SettingsPage } from "./pages/settings.slint";
 import { RankingsPage } from "./pages/rankings.slint";
 import { Page, FragranceRow, FragranceData, FragranceInput, ImageSelection, DashboardData, AppUser, RankingItem, UserRating } from "./types.slint";
+import { Theme } from "./theme.slint";
 
 export component MainWindow inherits Window {
     callback save_requested(FragranceInput);
@@ -42,7 +43,9 @@ export component MainWindow inherits Window {
     background: #121212;
 
     HorizontalBox {
-        sidebar {
+        spacing: 0px;
+
+        side-bar := sidebar {
             dashboard_requested => {
                 root.current-page = Page.Dashboard;
             }
@@ -188,6 +191,31 @@ export component MainWindow inherits Window {
 
                 rank_requested(mode, option) => {
                     root.rank_requested(mode, option);
+                }
+            }
+
+            if side-bar.collapsed : Rectangle {
+                x: 16px;
+                y: 16px;
+                width: 60px;
+                height: 60px;
+                background: #00000055;
+                border-radius: 20px;
+
+                TouchArea {
+                    clicked => {
+                        side-bar.collapsed = false;
+                    }
+                }
+
+                Text {
+                    text: "»";
+                    color: Theme.text-primary;
+                    font-size: 20px;
+                    width: 100%;
+                    height: 100%;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
                 }
             }
         }
