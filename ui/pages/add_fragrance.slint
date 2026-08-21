@@ -1,5 +1,5 @@
 import { VerticalBox, HorizontalBox, Button, LineEdit, CheckBox, ScrollView, Slider } from "std-widgets.slint";
-import { FragranceData, FragranceInput, UserRating } from "../types.slint";
+import { FragranceData, FragranceInput, UserRating, ImportResult } from "../types.slint";
 import { CategoryChip } from "../components/category_chip.slint";
 import { Theme } from "../theme.slint";
 
@@ -22,6 +22,7 @@ export component AddFragrance inherits Rectangle {
     callback add_requested(FragranceInput);
     callback cancel_requested();
     callback choose_image_requested();
+    callback import_from_url_requested(string) -> ImportResult;
 
     property <string> brand;
     property <string> name;
@@ -40,11 +41,26 @@ export component AddFragrance inherits Rectangle {
     property <string> partner_notes;
     property <string> list_choice: "Collection";
     property <[UserRating]> ratings;
+    property <string> import_url;
+    property <string> import_error;
 
     in-out property <string> image_path;
 
     init => {
         root.ratings = root.initial_ratings;
+    }
+
+    function apply-import(result: ImportResult) {
+        if (result.success) {
+            root.import_error = "";
+            if (result.brand != "") { root.brand = result.brand; }
+            if (result.name != "") { root.name = result.name; }
+            if (result.notes != "") { root.notes = result.notes; }
+            if (result.price != "") { root.price = result.price; }
+            if (result.image_path != "") { root.image_path = result.image_path; }
+        } else {
+            root.import_error = result.error;
+        }
     }
 
     background: Theme.bg-app;
@@ -99,6 +115,49 @@ export component AddFragrance inherits Rectangle {
                             color: Theme.text-secondary;
                             vertical-alignment: center;
                         }
+                    }
+                }
+            }
+
+            SectionCard {
+                VerticalBox {
+                    padding: Theme.space-md;
+                    spacing: Theme.space-sm;
+
+                    SectionLabel {
+                        text: "Import from Website";
+                    }
+
+                    HorizontalBox {
+                        spacing: Theme.space-sm;
+
+                        LineEdit {
+                            horizontal-stretch: 1;
+                            placeholder-text: "Paste a product link (e.g. FragranceNet.com)";
+                            text <=> root.import_url;
+                        }
+
+                        Button {
+                            text: "Import";
+
+                            clicked => {
+                                if (root.import_url != "") {
+                                    root.apply-import(root.import_from_url_requested(root.import_url));
+                                }
+                            }
+                        }
+                    }
+
+                    if root.import_error != "" : Text {
+                        text: root.import_error;
+                        color: #e57373;
+                        font-size: 12px;
+                    }
+
+                    Text {
+                        text: "Fills in Brand, Name, Notes, Price, and Image where found — double-check before saving.";
+                        color: Theme.text-muted;
+                        font-size: 12px;
                     }
                 }
             }

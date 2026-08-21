@@ -104,3 +104,13 @@ export enum Page {
     Rankings,
     Wishlist,
 }
+
+export struct ImportResult {
+    success: bool,
+    error: string,
+    brand: string,
+    name: string,
+    notes: string,
+    price: string,
+    image_path: string,
+}

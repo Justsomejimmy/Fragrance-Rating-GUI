@@ -1,5 +1,6 @@
 mod database;
 mod models;
+mod web_import;
 slint::include_modules!();
 use std::rc::Rc;
 use std::collections::HashMap;
@@ -587,8 +588,6 @@ fn main() {
         }
     );
 
-    let edit_image_ui = ui.as_weak();
-
     ui.on_choose_image_requested_edit(
         move || {
             if let Some(path) = rfd::FileDialog::new()
@@ -687,6 +686,34 @@ fn main() {
             if let Some(ui) = rank_ui.upgrade() {
                 let rankings = build_rankings(&rank_database, &mode, &option);
                 ui.set_ranking_items(ModelRc::new(VecModel::from(rankings)));
+            }
+        }
+    );
+
+    let import_ui = ui.as_weak();
+
+    ui.on_import_from_url_requested(
+        move |url| {
+            let _ = &import_ui;
+            match web_import::fetch_fragrance_info(&url) {
+                Ok(scraped) => ImportResult {
+                    success: true,
+                    error: "".into(),
+                    brand: scraped.brand.into(),
+                    name: scraped.name.into(),
+                    notes: scraped.notes.into(),
+                    price: scraped.price.into(),
+                    image_path: scraped.image_path.into(),
+                },
+                Err(e) => ImportResult {
+                    success: false,
+                    error: e.into(),
+                    brand: "".into(),
+                    name: "".into(),
+                    notes: "".into(),
+                    price: "".into(),
+                    image_path: "".into(),
+                },
             }
         }
     );
