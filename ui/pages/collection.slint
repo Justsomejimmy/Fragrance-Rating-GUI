@@ -1,7 +1,7 @@
 import { VerticalBox, HorizontalBox, ScrollView, ComboBox, LineEdit, Button } from "std-widgets.slint";
 import { FragranceCard } from "../components/fragrance_card.slint";
-import { FragranceData, FragranceRow } from "../types.slint";
 import { AddFragranceCard } from "../components/add_fragrance_card.slint";
+import { FragranceData, FragranceRow } from "../types.slint";
 import { Theme } from "../theme.slint";
 
 export component CollectionPage inherits Rectangle {
@@ -9,11 +9,16 @@ export component CollectionPage inherits Rectangle {
     in-out property <string> search-text: "";
     in property <image> fragrance-image;
     in property <[FragranceRow]> rows;
+    in property <[string]> user_names;
+    in property <[string]> all_note_names;
+
+    property <string> rating_user: "";
+    property <string> note_filter: "";
 
     callback add_requested();
     callback fragrance_clicked(FragranceData);
     callback search_requested(string);
-    callback sort_requested(string);
+    callback sort_requested(string, string);
 
     background: Theme.bg-app;
 
@@ -73,19 +78,58 @@ export component CollectionPage inherits Rectangle {
                 }
 
                 ComboBox {
-                    width: 170px;
+                    width: 190px;
 
                     model: [
                         "Rating: High → Low",
                         "Rating: Low → High",
                         "Name: A → Z",
-                        "Name: Z → A"
+                        "Name: Z → A",
+                        "Category",
+                        "Price: Low → High",
+                        "Price: High → Low",
+                        "Purchase Date: Oldest",
+                        "Purchase Date: Newest",
+                        "By Note",
+                        "Rating by User"
                     ];
 
                     current-value <=> root.sort-option;
 
                     selected => {
-                        root.sort_requested(root.sort-option);
+                        if (root.sort-option == "Rating by User") {
+                            if (root.user_names.length > 0) {
+                                root.rating_user = root.user_names[0];
+                                root.sort_requested(root.sort-option, root.rating_user);
+                            }
+                        } else if (root.sort-option == "By Note") {
+                            if (root.all_note_names.length > 0) {
+                                root.note_filter = root.all_note_names[0];
+                                root.sort_requested(root.sort-option, root.note_filter);
+                            }
+                        } else {
+                            root.sort_requested(root.sort-option, "");
+                        }
+                    }
+                }
+
+                if root.sort-option == "Rating by User" : ComboBox {
+                    width: 150px;
+                    model: root.user_names;
+                    current-value <=> root.rating_user;
+
+                    selected => {
+                        root.sort_requested(root.sort-option, root.rating_user);
+                    }
+                }
+
+                if root.sort-option == "By Note" : ComboBox {
+                    width: 150px;
+                    model: root.all_note_names;
+                    current-value <=> root.note_filter;
+
+                    selected => {
+                        root.sort_requested(root.sort-option, root.note_filter);
                     }
                 }
             }
