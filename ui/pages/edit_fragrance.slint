@@ -1,6 +1,7 @@
 import { VerticalBox, HorizontalBox, ScrollView, Button, LineEdit, Slider, CheckBox } from "std-widgets.slint";
-import { FragranceData, FragranceInput, ImageSelection, UserRating } from "../types.slint";
+import { FragranceData, FragranceInput, ImageSelection, UserRating, NoteChoice } from "../types.slint";
 import { CategoryChip } from "../components/category_chip.slint";
+import { NotesPicker } from "../components/notes_picker.slint";
 import { Theme } from "../theme.slint";
 
 component SectionCard inherits Rectangle {
@@ -26,7 +27,6 @@ export component EditFragrance inherits Rectangle {
     property <string> longevity;
     property <string> price;
     property <string> purchase_date;
-    property <string> notes;
     property <bool> season_spring;
     property <bool> season_summer;
     property <bool> season_fall;
@@ -56,7 +56,6 @@ export component EditFragrance inherits Rectangle {
         root.longevity = fragrance.longevity;
         root.price = fragrance.price;
         root.purchase_date = fragrance.purchase_date;
-        root.notes = fragrance.notes;
         root.season_spring = fragrance.season_spring;
         root.season_summer = fragrance.season_summer;
         root.season_fall = fragrance.season_fall;
@@ -77,6 +76,8 @@ export component EditFragrance inherits Rectangle {
     callback save_requested(FragranceInput);
     callback cancel_requested();
     callback choose_image_requested() -> ImageSelection;
+    callback note_created(string, [NoteChoice]) -> [NoteChoice];
+    callback search_changed(string, [NoteChoice]) -> [NoteChoice];
 
     function apply-image-selection(sel: ImageSelection) {
         if (sel.path != "") {
@@ -250,12 +251,6 @@ export component EditFragrance inherits Rectangle {
                         placeholder-text: "Purchase Date";
                         edited => { root.purchase_date = self.text; }
                     }
-
-                    LineEdit {
-                        text: root.notes;
-                        placeholder-text: "Notes";
-                        edited => { root.notes = self.text; }
-                    }
                 }
             }
 
@@ -307,6 +302,29 @@ export component EditFragrance inherits Rectangle {
                             changed(new-value) => {
                                 root.ratings[i].rating = round(new-value * 10) / 10;
                             }
+                        }
+                    }
+                }
+            }
+
+            SectionCard {
+                VerticalBox {
+                    padding: Theme.space-md;
+                    spacing: Theme.space-sm;
+
+                    SectionLabel {
+                        text: "Fragrance Notes";
+                    }
+
+                    notes-picker := NotesPicker {
+                        initial_choices: fragrance.note_choices;
+
+                        note_created(name, choices) => {
+                            return root.note_created(name, choices);
+                        }
+
+                        search_changed(text, choices) => {
+                            return root.search_changed(text, choices);
                         }
                     }
                 }
@@ -446,7 +464,6 @@ export component EditFragrance inherits Rectangle {
                             longevity: root.longevity,
                             price: root.price,
                             purchase_date: root.purchase_date,
-                            notes: root.notes,
                             season_spring: root.season_spring,
                             season_summer: root.season_summer,
                             season_fall: root.season_fall,
@@ -460,6 +477,7 @@ export component EditFragrance inherits Rectangle {
                             image_scale: root.scale,
                             ratings: root.ratings,
                             send_to_wishlist: root.is_wishlist,
+                            note_choices: notes-picker.choices,
                         });
                     }
                 }

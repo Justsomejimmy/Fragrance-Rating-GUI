@@ -15,6 +15,18 @@ fn join_seasons(spring: bool, summer: bool, fall: bool, winter: bool) -> String 
     parts.join(",")
 }
 
+fn join_notes(choices: &ModelRc<NoteChoice>) -> String {
+    let mut parts = Vec::new();
+    for i in 0..choices.row_count() {
+        if let Some(c) = choices.row_data(i) {
+            if c.selected {
+                parts.push(c.name.to_string());
+            }
+        }
+    }
+    parts.join(",")
+}
+
 fn build_ratings_map(database: &rusqlite::Connection) -> HashMap<i64, HashMap<i64, f64>> {
     let all_ratings = database::rating_repository::get_all(database);
     let mut map: HashMap<i64, HashMap<i64, f64>> = HashMap::new();
@@ -30,6 +42,7 @@ fn to_fragrance_data(
     f: &models::fragrance::Fragrance,
     users: &[models::user::User],
     ratings_map: &HashMap<i64, HashMap<i64, f64>>,
+    all_notes: &[String],
 ) -> FragranceData {
     let image = if f.image_path.is_empty() {
         Image::default()
@@ -61,6 +74,22 @@ fn to_fragrance_data(
         (fragrance_ratings.values().sum::<f64>() / fragrance_ratings.len() as f64) as f32
     };
 
+    let selected_lower: std::collections::HashSet<String> = f
+        .notes
+        .split(',')
+        .map(|s| s.trim().to_lowercase())
+        .filter(|s| !s.is_empty())
+        .collect();
+
+    let note_choices: Vec<NoteChoice> = all_notes
+        .iter()
+        .map(|name| NoteChoice {
+            name: name.clone().into(),
+            selected: selected_lower.contains(&name.to_lowercase()),
+            matches: true,
+        })
+        .collect();
+
     FragranceData {
         id: f.id as i32,
         brand: f.brand.clone().into(),
@@ -87,6 +116,7 @@ fn to_fragrance_data(
         category: f.category.clone().into(),
         ratings: ModelRc::new(VecModel::from(ratings)),
         is_wishlist: f.is_wishlist,
+        note_choices: ModelRc::new(VecModel::from(note_choices)),
     }
 }
 
@@ -110,12 +140,13 @@ fn group_into_rows<T: Clone>(items: &[T], row_size: usize, reserved_first: usize
 fn load_rows(database: &rusqlite::Connection, sort_option: &str, search_text: &str, wishlist: bool) -> Vec<FragranceRow> {
     let users = database::user_repository::get_all(database);
     let ratings_map = build_ratings_map(database);
+    let all_notes = database::note_repository::get_all(database);
     let fragrances = database::fragrance_repository::get_all(database);
 
     let mut ui_fragrances: Vec<FragranceData> = fragrances
         .iter()
         .filter(|f| f.is_wishlist == wishlist)
-        .map(|f| to_fragrance_data(f, &users, &ratings_map))
+        .map(|f| to_fragrance_data(f, &users, &ratings_map, &all_notes))
         .collect();
 
     let search = search_text.trim().to_lowercase();
@@ -154,12 +185,13 @@ fn load_rows(database: &rusqlite::Connection, sort_option: &str, search_text: &s
 fn build_dashboard(database: &rusqlite::Connection) -> DashboardData {
     let users = database::user_repository::get_all(database);
     let ratings_map = build_ratings_map(database);
+    let all_notes = database::note_repository::get_all(database);
     let fragrances = database::fragrance_repository::get_all(database);
     let fragrances: Vec<_> = fragrances.into_iter().filter(|f| !f.is_wishlist).collect();
 
     let ui_fragrances: Vec<FragranceData> = fragrances
         .iter()
-        .map(|f| to_fragrance_data(f, &users, &ratings_map))
+        .map(|f| to_fragrance_data(f, &users, &ratings_map, &all_notes))
         .collect();
 
     if ui_fragrances.is_empty() {
@@ -339,6 +371,17 @@ fn refresh_users_models(database: &rusqlite::Connection) -> (ModelRc<AppUser>, M
     )
 }
 
+fn build_initial_ratings(users: &[models::user::User]) -> Vec<UserRating> {
+    users
+        .iter()
+        .map(|u| UserRating {
+            user_id: u.id as i32,
+            user_name: u.name.clone().into(),
+            rating: 0.0,
+        })
+        .collect()
+}
+
 fn refresh_all(
     ui: &MainWindow,
     database: &rusqlite::Connection,
@@ -361,6 +404,13 @@ fn refresh_all(
 
     let users = database::user_repository::get_all(database);
     ui.set_initial_ratings(ModelRc::new(VecModel::from(build_initial_ratings(&users))));
+
+    let all_notes = database::note_repository::get_all(database);
+    let initial_note_choices: Vec<NoteChoice> = all_notes
+        .iter()
+        .map(|n| NoteChoice { name: n.clone().into(), selected: false, matches: true })
+        .collect();
+    ui.set_initial_note_choices(ModelRc::new(VecModel::from(initial_note_choices)));
 
     let rankings = build_rankings(database, rank_mode, rank_option);
     ui.set_ranking_items(ModelRc::new(VecModel::from(rankings)));
@@ -437,6 +487,7 @@ fn main() {
                 input.season_fall,
                 input.season_winter,
             );
+            let notes = join_notes(&input.note_choices);
 
             database::fragrance_repository::update(
                 &save_database,
@@ -449,7 +500,7 @@ fn main() {
                     longevity: &input.longevity,
                     price: &input.price,
                     purchase_date: &input.purchase_date,
-                    notes: &input.notes,
+                    notes: &notes,
                     seasons: &seasons,
                     my_notes: &input.my_notes,
                     partner_notes: &input.partner_notes,
@@ -517,6 +568,7 @@ fn main() {
                 input.season_fall,
                 input.season_winter,
             );
+            let notes = join_notes(&input.note_choices);
 
             let new_id = database::fragrance_repository::insert(
                 &add_database,
@@ -528,7 +580,7 @@ fn main() {
                     longevity: &input.longevity,
                     price: &input.price,
                     purchase_date: &input.purchase_date,
-                    notes: &input.notes,
+                    notes: &notes,
                     seasons: &seasons,
                     image_path: &input.image_path,
                     my_notes: &input.my_notes,
@@ -690,11 +742,8 @@ fn main() {
         }
     );
 
-    let import_ui = ui.as_weak();
-
     ui.on_import_from_url_requested(
         move |url| {
-            let _ = &import_ui;
             match web_import::fetch_fragrance_info(&url) {
                 Ok(scraped) => ImportResult {
                     success: true,
@@ -718,16 +767,60 @@ fn main() {
         }
     );
 
-    ui.run().unwrap();
-}
+    let note_database = Rc::clone(&database);
 
-fn build_initial_ratings(users: &[models::user::User]) -> Vec<UserRating> {
-    users
-        .iter()
-        .map(|u| UserRating {
-            user_id: u.id as i32,
-            user_name: u.name.clone().into(),
-            rating: 0.0,
-        })
-        .collect()
+    ui.on_note_created(
+        move |name, current_choices| {
+            let trimmed = name.trim().to_string();
+            if trimmed.is_empty() {
+                return current_choices;
+            }
+
+            database::note_repository::insert_if_missing(&note_database, &trimmed);
+
+            let mut result: Vec<NoteChoice> = Vec::new();
+            let mut found = false;
+
+            for i in 0..current_choices.row_count() {
+                if let Some(mut c) = current_choices.row_data(i) {
+                    if c.name.to_lowercase() == trimmed.to_lowercase() {
+                        c.selected = true;
+                    }
+                    c.matches = true;
+                    if c.name.to_lowercase() == trimmed.to_lowercase() {
+                        found = true;
+                    }
+                    result.push(c);
+                }
+            }
+
+            if !found {
+                result.push(NoteChoice { name: trimmed.into(), selected: true, matches: true });
+            }
+
+            ModelRc::new(VecModel::from(result))
+        }
+    );
+
+    let search_note_database = Rc::clone(&database);
+    let _ = &search_note_database; // unused, kept for symmetry if you extend this later
+
+    ui.on_search_changed(
+        move |search_text, current_choices| {
+            let query = search_text.to_lowercase();
+
+            let mut result: Vec<NoteChoice> = Vec::new();
+
+            for i in 0..current_choices.row_count() {
+                if let Some(mut c) = current_choices.row_data(i) {
+                    c.matches = query.is_empty() || c.name.to_lowercase().contains(&query);
+                    result.push(c);
+                }
+            }
+
+            ModelRc::new(VecModel::from(result))
+        }
+    );
+
+    ui.run().unwrap();
 }

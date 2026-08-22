@@ -49,6 +49,34 @@ pub fn create_tables(conn: &Connection) {
         [],
     ).unwrap();
 
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS note_options (name TEXT PRIMARY KEY COLLATE NOCASE)",
+        [],
+    ).unwrap();
+
+    // One-time backfill: seed note_options from notes already on existing fragrances.
+    let note_count: i64 = conn
+        .query_row("SELECT COUNT(*) FROM note_options", [], |row| row.get(0))
+        .unwrap();
+
+    if note_count == 0 {
+        let mut stmt = conn.prepare("SELECT notes FROM fragrances").unwrap();
+        let existing_notes: Vec<String> = stmt
+            .query_map([], |row| row.get::<_, String>(0))
+            .unwrap()
+            .filter_map(|r| r.ok())
+            .collect();
+
+        for notes_str in existing_notes {
+            for token in notes_str.split(',') {
+                let trimmed = token.trim();
+                if !trimmed.is_empty() {
+                    let _ = conn.execute("INSERT OR IGNORE INTO note_options (name) VALUES (?1)", [trimmed]);
+                }
+            }
+        }
+    }
+
     // Migrations for pre-existing databases (safe to run repeatedly; errors ignored on purpose)
     let _ = conn.execute("ALTER TABLE fragrances ADD COLUMN image_offset_x REAL NOT NULL DEFAULT 0", []);
     let _ = conn.execute("ALTER TABLE fragrances ADD COLUMN image_offset_y REAL NOT NULL DEFAULT 0", []);

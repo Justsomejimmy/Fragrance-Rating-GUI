@@ -9,6 +9,12 @@ export struct AppUser {
     name: string,
 }
 
+export struct NoteChoice {
+    name: string,
+    selected: bool,
+    matches: bool,
+}
+
 export struct FragranceData {
     id: int,
     brand: string,
@@ -35,6 +41,7 @@ export struct FragranceData {
     category: string,
     ratings: [UserRating],
     is_wishlist: bool,
+    note_choices: [NoteChoice],
 }
 
 export struct FragranceInput {
@@ -46,7 +53,6 @@ export struct FragranceInput {
     longevity: string,
     price: string,
     purchase_date: string,
-    notes: string,
     season_spring: bool,
     season_summer: bool,
     season_fall: bool,
@@ -60,6 +66,7 @@ export struct FragranceInput {
     image_scale: float,
     ratings: [UserRating],
     send_to_wishlist: bool,
+    note_choices: [NoteChoice],
 }
 
 export struct ImageSelection {
@@ -94,6 +101,16 @@ export struct RankingItem {
     display_rating: float,
 }
 
+export struct ImportResult {
+    success: bool,
+    error: string,
+    brand: string,
+    name: string,
+    notes: string,
+    price: string,
+    image_path: string,
+}
+
 export enum Page {
     Collection,
     Details,
@@ -103,14 +120,4 @@ export enum Page {
     Settings,
     Rankings,
     Wishlist,
-}
-
-export struct ImportResult {
-    success: bool,
-    error: string,
-    brand: string,
-    name: string,
-    notes: string,
-    price: string,
-    image_path: string,
 }

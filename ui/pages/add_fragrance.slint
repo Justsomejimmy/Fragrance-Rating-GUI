@@ -1,6 +1,7 @@
 import { VerticalBox, HorizontalBox, Button, LineEdit, CheckBox, ScrollView, Slider } from "std-widgets.slint";
-import { FragranceData, FragranceInput, UserRating, ImportResult } from "../types.slint";
+import { FragranceData, FragranceInput, UserRating, ImportResult, NoteChoice } from "../types.slint";
 import { CategoryChip } from "../components/category_chip.slint";
+import { NotesPicker } from "../components/notes_picker.slint";
 import { Theme } from "../theme.slint";
 
 component SectionCard inherits Rectangle {
@@ -18,11 +19,14 @@ component SectionLabel inherits Text {
 
 export component AddFragrance inherits Rectangle {
     in property <[UserRating]> initial_ratings;
+    in property <[NoteChoice]> initial_note_choices;
 
     callback add_requested(FragranceInput);
     callback cancel_requested();
     callback choose_image_requested();
     callback import_from_url_requested(string) -> ImportResult;
+    callback note_created(string, [NoteChoice]) -> [NoteChoice];
+    callback search_changed(string, [NoteChoice]) -> [NoteChoice];
 
     property <string> brand;
     property <string> name;
@@ -31,7 +35,6 @@ export component AddFragrance inherits Rectangle {
     property <string> longevity;
     property <string> price;
     property <string> purchase_date;
-    property <string> notes;
     property <bool> season_spring;
     property <bool> season_summer;
     property <bool> season_fall;
@@ -41,6 +44,7 @@ export component AddFragrance inherits Rectangle {
     property <string> partner_notes;
     property <string> list_choice: "Collection";
     property <[UserRating]> ratings;
+
     property <string> import_url;
     property <string> import_error;
 
@@ -55,7 +59,7 @@ export component AddFragrance inherits Rectangle {
             root.import_error = "";
             if (result.brand != "") { root.brand = result.brand; }
             if (result.name != "") { root.name = result.name; }
-            if (result.notes != "") { root.notes = result.notes; }
+            if (result.notes != "") { root.my_notes = result.notes; }
             if (result.price != "") { root.price = result.price; }
             if (result.image_path != "") { root.image_path = result.image_path; }
         } else {
@@ -155,7 +159,7 @@ export component AddFragrance inherits Rectangle {
                     }
 
                     Text {
-                        text: "Fills in Brand, Name, Notes, Price, and Image where found — double-check before saving.";
+                        text: "Fills in Brand, Name, My Notes, Price, and Image where found — double-check before saving.";
                         color: Theme.text-muted;
                         font-size: 12px;
                     }
@@ -204,11 +208,6 @@ export component AddFragrance inherits Rectangle {
                     LineEdit {
                         placeholder-text: "Purchase Date";
                         text <=> root.purchase_date;
-                    }
-
-                    LineEdit {
-                        placeholder-text: "Notes";
-                        text <=> root.notes;
                     }
                 }
             }
@@ -261,6 +260,29 @@ export component AddFragrance inherits Rectangle {
                             changed(new-value) => {
                                 root.ratings[i].rating = round(new-value * 10) / 10;
                             }
+                        }
+                    }
+                }
+            }
+
+            SectionCard {
+                VerticalBox {
+                    padding: Theme.space-md;
+                    spacing: Theme.space-sm;
+
+                    SectionLabel {
+                        text: "Fragrance Notes";
+                    }
+
+                    notes-picker := NotesPicker {
+                        initial_choices: root.initial_note_choices;
+
+                        note_created(name, choices) => {
+                            return root.note_created(name, choices);
+                        }
+
+                        search_changed(text, choices) => {
+                            return root.search_changed(text, choices);
                         }
                     }
                 }
@@ -398,7 +420,6 @@ export component AddFragrance inherits Rectangle {
                             longevity: root.longevity,
                             price: root.price,
                             purchase_date: root.purchase_date,
-                            notes: root.notes,
                             season_spring: root.season_spring,
                             season_summer: root.season_summer,
                             season_fall: root.season_fall,
@@ -412,6 +433,7 @@ export component AddFragrance inherits Rectangle {
                             image_scale: 1.0,
                             ratings: root.ratings,
                             send_to_wishlist: root.list_choice == "Wishlist",
+                            note_choices: notes-picker.choices,
                         });
                     }
                 }
