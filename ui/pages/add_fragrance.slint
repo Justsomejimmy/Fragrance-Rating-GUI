@@ -1,5 +1,5 @@
 import { VerticalBox, HorizontalBox, Button, LineEdit, CheckBox, ScrollView, Slider } from "std-widgets.slint";
-import { FragranceData, FragranceInput, UserRating, ImportResult, NoteChoice } from "../types.slint";
+import { FragranceData, FragranceInput, UserRating, ImportResult, NoteChoice, ValidationErrors } from "../types.slint";
 import { CategoryChip } from "../components/category_chip.slint";
 import { NotesPicker } from "../components/notes_picker.slint";
 import { Theme } from "../theme.slint";
@@ -17,6 +17,11 @@ component SectionLabel inherits Text {
     font-weight: 700;
 }
 
+component FieldError inherits Text {
+    color: #e57373;
+    font-size: 12px;
+}
+
 export component AddFragrance inherits Rectangle {
     in property <[UserRating]> initial_ratings;
     in property <[NoteChoice]> initial_note_choices;
@@ -27,6 +32,7 @@ export component AddFragrance inherits Rectangle {
     callback import_from_url_requested(string) -> ImportResult;
     callback note_created(string, [NoteChoice]) -> [NoteChoice];
     callback search_changed(string, [NoteChoice]) -> [NoteChoice];
+    callback validate_fragrance(FragranceInput) -> ValidationErrors;
 
     property <string> brand;
     property <string> name;
@@ -48,6 +54,8 @@ export component AddFragrance inherits Rectangle {
     property <string> import_url;
     property <string> import_error;
 
+    property <ValidationErrors> errors;
+
     in-out property <string> image_path;
 
     init => {
@@ -65,6 +73,33 @@ export component AddFragrance inherits Rectangle {
         } else {
             root.import_error = result.error;
         }
+    }
+
+    function build-input() -> FragranceInput {
+        return {
+            id: 0,
+            brand: root.brand,
+            name: root.name,
+            concentration: root.concentration,
+            projection: root.projection,
+            longevity: root.longevity,
+            price: root.price,
+            purchase_date: root.purchase_date,
+            season_spring: root.season_spring,
+            season_summer: root.season_summer,
+            season_fall: root.season_fall,
+            season_winter: root.season_winter,
+            category: root.category,
+            my_notes: root.my_notes,
+            partner_notes: root.partner_notes,
+            image_path: root.image_path,
+            image_offset_x: 0,
+            image_offset_y: 0,
+            image_scale: 1.0,
+            ratings: root.ratings,
+            send_to_wishlist: root.list_choice == "Wishlist",
+            note_choices: notes-picker.choices,
+        };
     }
 
     background: Theme.bg-app;
@@ -180,9 +215,17 @@ export component AddFragrance inherits Rectangle {
                         text <=> root.brand;
                     }
 
+                    if root.errors.brand != "" : FieldError {
+                        text: root.errors.brand;
+                    }
+
                     LineEdit {
                         placeholder-text: "Name";
                         text <=> root.name;
+                    }
+
+                    if root.errors.name != "" : FieldError {
+                        text: root.errors.name;
                     }
 
                     LineEdit {
@@ -190,9 +233,17 @@ export component AddFragrance inherits Rectangle {
                         text <=> root.concentration;
                     }
 
+                    if root.errors.concentration != "" : FieldError {
+                        text: root.errors.concentration;
+                    }
+
                     LineEdit {
                         placeholder-text: "Projection";
                         text <=> root.projection;
+                    }
+
+                    if root.errors.projection != "" : FieldError {
+                        text: root.errors.projection;
                     }
 
                     LineEdit {
@@ -200,14 +251,26 @@ export component AddFragrance inherits Rectangle {
                         text <=> root.longevity;
                     }
 
+                    if root.errors.longevity != "" : FieldError {
+                        text: root.errors.longevity;
+                    }
+
                     LineEdit {
                         placeholder-text: "Price";
                         text <=> root.price;
                     }
 
+                    if root.errors.price != "" : FieldError {
+                        text: root.errors.price;
+                    }
+
                     LineEdit {
-                        placeholder-text: "Purchase Date";
+                        placeholder-text: "Purchase Date (DD-MM-YYYY)";
                         text <=> root.purchase_date;
+                    }
+
+                    if root.errors.purchase_date != "" : FieldError {
+                        text: root.errors.purchase_date;
                     }
                 }
             }
@@ -284,6 +347,10 @@ export component AddFragrance inherits Rectangle {
                         search_changed(text, choices) => {
                             return root.search_changed(text, choices);
                         }
+                    }
+
+                    if root.errors.notes != "" : FieldError {
+                        text: root.errors.notes;
                     }
                 }
             }
@@ -397,9 +464,17 @@ export component AddFragrance inherits Rectangle {
                         text <=> root.my_notes;
                     }
 
+                    if root.errors.my_notes != "" : FieldError {
+                        text: root.errors.my_notes;
+                    }
+
                     LineEdit {
                         placeholder-text: "Partner Notes";
                         text <=> root.partner_notes;
+                    }
+
+                    if root.errors.partner_notes != "" : FieldError {
+                        text: root.errors.partner_notes;
                     }
                 }
             }
@@ -411,30 +486,10 @@ export component AddFragrance inherits Rectangle {
                     text: "Add";
 
                     clicked => {
-                        root.add_requested({
-                            id: 0,
-                            brand: root.brand,
-                            name: root.name,
-                            concentration: root.concentration,
-                            projection: root.projection,
-                            longevity: root.longevity,
-                            price: root.price,
-                            purchase_date: root.purchase_date,
-                            season_spring: root.season_spring,
-                            season_summer: root.season_summer,
-                            season_fall: root.season_fall,
-                            season_winter: root.season_winter,
-                            category: root.category,
-                            my_notes: root.my_notes,
-                            partner_notes: root.partner_notes,
-                            image_path: root.image_path,
-                            image_offset_x: 0,
-                            image_offset_y: 0,
-                            image_scale: 1.0,
-                            ratings: root.ratings,
-                            send_to_wishlist: root.list_choice == "Wishlist",
-                            note_choices: notes-picker.choices,
-                        });
+                        root.errors = root.validate_fragrance(root.build-input());
+                        if (!root.errors.has_errors) {
+                            root.add_requested(root.build-input());
+                        }
                     }
                 }
 

@@ -27,6 +27,104 @@ fn join_notes(choices: &ModelRc<NoteChoice>) -> String {
     parts.join(",")
 }
 
+fn is_valid_price(price: &str) -> bool {
+    let trimmed = price.trim();
+    let without_dollar = trimmed.strip_prefix('$').unwrap_or(trimmed);
+    if without_dollar.is_empty() {
+        return false;
+    }
+    let mut seen_dot = false;
+    for ch in without_dollar.chars() {
+        if ch == '.' {
+            if seen_dot { return false; }
+            seen_dot = true;
+        } else if !ch.is_ascii_digit() {
+            return false;
+        }
+    }
+    true
+}
+
+fn is_valid_date_ddmmyyyy(date: &str) -> bool {
+    let parts: Vec<&str> = date.trim().split('-').collect();
+    if parts.len() != 3 {
+        return false;
+    }
+    let (d, m, y) = (parts[0], parts[1], parts[2]);
+    if d.len() != 2 || m.len() != 2 || y.len() != 4 {
+        return false;
+    }
+    let (day, month, year) = match (d.parse::<u32>(), m.parse::<u32>(), y.parse::<u32>()) {
+        (Ok(day), Ok(month), Ok(year)) => (day, month, year),
+        _ => return false,
+    };
+    if month < 1 || month > 12 {
+        return false;
+    }
+    let max_day = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 => {
+            let leap = (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+            if leap { 29 } else { 28 }
+        }
+        _ => return false,
+    };
+    day >= 1 && day <= max_day
+}
+
+fn validate_input(input: &FragranceInput) -> ValidationErrors {
+    let mut errors = ValidationErrors {
+        brand: "".into(),
+        name: "".into(),
+        concentration: "".into(),
+        projection: "".into(),
+        longevity: "".into(),
+        price: "".into(),
+        purchase_date: "".into(),
+        my_notes: "".into(),
+        partner_notes: "".into(),
+        notes: "".into(),
+        has_errors: false,
+    };
+
+    if input.brand.trim().is_empty() { errors.brand = "Brand is required".into(); }
+    if input.name.trim().is_empty() { errors.name = "Name is required".into(); }
+
+    if !input.send_to_wishlist {
+        if input.price.trim().is_empty() {
+            errors.price = "Price is required".into();
+        } else if !is_valid_price(&input.price) {
+            errors.price = "Enter a price like $120 or $120.50".into();
+        }
+
+        if input.purchase_date.trim().is_empty() {
+            errors.purchase_date = "Purchase date is required".into();
+        } else if !is_valid_date_ddmmyyyy(&input.purchase_date) {
+            errors.purchase_date = "Use DD-MM-YYYY format (e.g. 25-12-2025)".into();
+        }
+    } else if !input.price.trim().is_empty() && !is_valid_price(&input.price) {
+        errors.price = "Enter a price like $120 or $120.50".into();
+    } else if !input.purchase_date.trim().is_empty() && !is_valid_date_ddmmyyyy(&input.purchase_date) {
+        errors.purchase_date = "Use DD-MM-YYYY format (e.g. 25-12-2025)".into();
+    }
+
+    let has_selected_note = (0..input.note_choices.row_count())
+        .filter_map(|i| input.note_choices.row_data(i))
+        .any(|c| c.selected);
+    if !has_selected_note {
+        errors.notes = "Select at least one fragrance note".into();
+    }
+
+    errors.has_errors = !errors.brand.is_empty()
+        || !errors.name.is_empty()
+        || !errors.price.is_empty()
+        || !errors.purchase_date.is_empty()
+        || !errors.notes.is_empty();
+
+    errors
+}
+
 fn build_ratings_map(database: &rusqlite::Connection) -> HashMap<i64, HashMap<i64, f64>> {
     let all_ratings = database::rating_repository::get_all(database);
     let mut map: HashMap<i64, HashMap<i64, f64>> = HashMap::new();
@@ -913,6 +1011,8 @@ fn main() {
             ModelRc::new(VecModel::from(result))
         }
     );
+
+    ui.on_validate_fragrance(|input| validate_input(&input));
 
     ui.run().unwrap();
 }

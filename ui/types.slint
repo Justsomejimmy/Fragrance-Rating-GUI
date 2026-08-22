@@ -111,6 +111,20 @@ export struct ImportResult {
     image_path: string,
 }
 
+export struct ValidationErrors {
+    brand: string,
+    name: string,
+    concentration: string,
+    projection: string,
+    longevity: string,
+    price: string,
+    purchase_date: string,
+    my_notes: string,
+    partner_notes: string,
+    notes: string,
+    has_errors: bool,
+}
+
 export enum Page {
     Collection,
     Details,

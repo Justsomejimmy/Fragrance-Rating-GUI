@@ -1,170 +1,88 @@
 # Fragrance Vault
 
-A native desktop application for managing fragrance collections with custom ratings, seasonal recommendations, searchable notes, and local data storage.
+A native desktop application for managing a fragrance collection — with multi-user ratings, seasonal recommendations, searchable notes, and fully local data storage.
 
 ## Overview
 
-Fragrance Vault is a personal fragrance catalog and rating application designed to organize, track, and compare perfumes. Users can maintain a collection, rate fragrances individually, record personal notes, and discover their highest-rated fragrances based on season, scent profile, and personal preferences.
-
-The application is built as a fully local desktop application, allowing all fragrance data and images to remain stored on the user's machine.
+Fragrance Vault is a personal fragrance catalog and rating application for organizing, tracking, and comparing perfumes. Multiple users can each rate a fragrance individually, and the app surfaces averaged ratings, seasonal top picks, and a top-10 rankings view. All data and images are stored locally — nothing leaves the user's machine.
 
 ## Features
 
-### Collection Management
-- Add fragrances to a personal collection
-- Upload and store fragrance bottle images
-- View fragrance details including:
-  - Brand
-  - Name
-  - Price and date of price
-  - Concentration
-  - Fragrance notes
-  - Recommended seasons
-  - Personal reviews
+**Collection & Wishlist**
+- Add fragrances to a collection or a separate wishlist, and move items between the two
+- Upload a bottle image with pan/zoom cropping
+- Track brand, name, price, purchase date, concentration, projection, longevity, category, and seasons
+- Auto-fill fragrance details from a product link (Open Graph / schema.org metadata)
 
-### Rating System
-- Individual ratings from multiple users
-- 1-10 rating scale
-- Compare ratings between users
-- Calculate average fragrance ratings
+**Ratings**
+- Multiple users, each with their own 0–10 rating per fragrance
+- Automatically averaged and displayed on the collection and details views
+- Manage users (add, rename, remove) from Settings
 
-Rating categories include:
-- Overall scent
-- Longevity
-- Projection
-- Versatility
-- Value
+**Notes**
+- Searchable, creatable fragrance-notes system shared across the collection
+- Filter the collection by a specific note
 
-### Organization & Search
-- Search fragrances by name, brand, or notes
-- Sort collection by:
-  - Rating
-  - Season
-  - Fragrance notes
-  - Alphabetical order
-  - Price
+**Organization & Discovery**
+- Search by brand or name; sort by rating, name, category, price, purchase date, notes, or a specific user's rating
+- Dashboard with collection totals, average rating, highest/lowest rated, and top picks by season and category
+- Top-10 rankings, filterable by season, category, or user
 
-### Seasonal Recommendations
-- View top-rated fragrances based on:
-  - Spring
-  - Summer
-  - Fall
-  - Winter
-
-### Wishlist
-- Save fragrances to try or purchase later
-- Track notes and information about desired fragrances
+**Data Validation**
+- Required-field and format checks (price, date) on save, with inline error messages
 
 ## Technology Stack
 
-### Application
-- Rust
-- Tauri
-- Slint
-
-### Database
-- SQLite
-
-### Development Tools
-- Cargo
-- Git
+- **Application:** Rust, Slint
+- **Database:** SQLite (via `rusqlite`)
+- **Web Import:** `ureq`, `scraper`, `serde_json`
+- **Tooling:** Cargo, Git
 
 ## Architecture
 
 ```
 Fragrance Vault
 │
-├── User Interface
-│   └── Slint UI
-│
-├── Application Logic
-│   └── Rust
-│
-├── Database Layer
-│   └── SQLite
-│
-└── Local Storage
-    ├── Fragrance Data
-    └── Bottle Images
+├── UI            → Slint
+├── App Logic     → Rust
+├── Database      → SQLite
+└── Local Storage → Fragrance data & bottle images
 ```
 
 ## Database Design
 
-The application uses a relational database structure to support multiple users, ratings, fragrance notes, and seasonal filtering.
+- **fragrances** — core fragrance data, seasons, category, image, wishlist flag
+- **users** — people who rate fragrances
+- **ratings** — per-user rating per fragrance
+- **note_options** — the shared, searchable catalog of fragrance notes
 
-Main entities:
+## Completed Features
 
-- Fragrances
-- Users
-- Ratings
-- Personal Notes
-- Seasons
-- Fragrance Notes
-- Wishlist Items
+- [x] Desktop application interface
+- [x] Collection and wishlist management
+- [x] SQLite database integration
+- [x] Multi-user rating system
+- [x] Search, sort, and filter
+- [x] Dashboard and seasonal/category rankings
+- [x] Searchable, creatable fragrance notes
+- [x] Website auto-import
+- [x] Field validation
 
-The database design supports:
-- Multiple season associations per fragrance
-- Multiple user ratings
-- Searching by fragrance notes
-- Future expansion into analytics and recommendation features
+## Planned
 
-## Project Status
-
-Currently in development
-
-Current MVP goals:
-- [ ] Create desktop application interface
-- [ ] Implement fragrance collection management
-- [ ] Add SQLite database integration
-- [ ] Add rating system
-- [ ] Add search and filtering
-- [ ] Add seasonal rankings
-
-## Future Features
-
-Potential improvements:
-
-- Fragrance statistics dashboard
-- Collection value tracking
-- Wear history tracking
-- Bottle usage tracking
-- Fragrance recommendation system
-- Data export/import
-- Backup and restore functionality
-- Cloud synchronization
+- Adjustable, auto-scaling window sizing
+- Packaged standalone executable
+- CI/CD pipeline
 
 ## Installation
 
-### Requirements
-
-- Rust
-- Cargo
-- Tauri dependencies
-
-### Clone Repository
+**Requirements:** Rust, Cargo
 
 ```bash
 git clone <repository-url>
-
 cd fragrance-vault
+cargo run
 ```
-
-### Run Development Build
-
-```bash
-cargo tauri dev
-```
-
-## Motivation
-
-This project was created to explore native desktop application development while building a practical tool for organizing and analyzing a personal fragrance collection.
-
-It provides hands-on experience with:
-- Rust application development
-- Desktop GUI design
-- Database architecture
-- Local data management
-- Software project organization
 
 ## License
 

@@ -1,5 +1,5 @@
 import { VerticalBox, HorizontalBox, ScrollView, Button, LineEdit, Slider, CheckBox } from "std-widgets.slint";
-import { FragranceData, FragranceInput, ImageSelection, UserRating, NoteChoice } from "../types.slint";
+import { FragranceData, FragranceInput, ImageSelection, UserRating, NoteChoice, ValidationErrors } from "../types.slint";
 import { CategoryChip } from "../components/category_chip.slint";
 import { NotesPicker } from "../components/notes_picker.slint";
 import { Theme } from "../theme.slint";
@@ -15,6 +15,11 @@ component SectionLabel inherits Text {
     color: Theme.text-primary;
     font-size: 16px;
     font-weight: 700;
+}
+
+component FieldError inherits Text {
+    color: #e57373;
+    font-size: 12px;
 }
 
 export component EditFragrance inherits Rectangle {
@@ -36,6 +41,8 @@ export component EditFragrance inherits Rectangle {
     property <string> partner_notes;
     property <[UserRating]> ratings;
     property <bool> is_wishlist;
+
+    property <ValidationErrors> errors;
 
     property <string> image_path;
     property <image> preview_image;
@@ -78,6 +85,7 @@ export component EditFragrance inherits Rectangle {
     callback choose_image_requested() -> ImageSelection;
     callback note_created(string, [NoteChoice]) -> [NoteChoice];
     callback search_changed(string, [NoteChoice]) -> [NoteChoice];
+    callback validate_fragrance(FragranceInput) -> ValidationErrors;
 
     function apply-image-selection(sel: ImageSelection) {
         if (sel.path != "") {
@@ -87,6 +95,33 @@ export component EditFragrance inherits Rectangle {
             root.offset_y = 0px;
             root.scale = 1.0;
         }
+    }
+
+    function build-input() -> FragranceInput {
+        return {
+            id: root.fragrance.id,
+            brand: root.brand,
+            name: root.name,
+            concentration: root.concentration,
+            projection: root.projection,
+            longevity: root.longevity,
+            price: root.price,
+            purchase_date: root.purchase_date,
+            season_spring: root.season_spring,
+            season_summer: root.season_summer,
+            season_fall: root.season_fall,
+            season_winter: root.season_winter,
+            category: root.category,
+            my_notes: root.my_notes,
+            partner_notes: root.partner_notes,
+            image_path: root.image_path,
+            image_offset_x: root.offset_x / 1px,
+            image_offset_y: root.offset_y / 1px,
+            image_scale: root.scale,
+            ratings: root.ratings,
+            send_to_wishlist: root.is_wishlist,
+            note_choices: notes-picker.choices,
+        };
     }
 
     background: Theme.bg-app;
@@ -216,10 +251,18 @@ export component EditFragrance inherits Rectangle {
                         edited => { root.brand = self.text; }
                     }
 
+                    if root.errors.brand != "" : FieldError {
+                        text: root.errors.brand;
+                    }
+
                     LineEdit {
                         text: root.name;
                         placeholder-text: "Name";
                         edited => { root.name = self.text; }
+                    }
+
+                    if root.errors.name != "" : FieldError {
+                        text: root.errors.name;
                     }
 
                     LineEdit {
@@ -228,10 +271,18 @@ export component EditFragrance inherits Rectangle {
                         edited => { root.concentration = self.text; }
                     }
 
+                    if root.errors.concentration != "" : FieldError {
+                        text: root.errors.concentration;
+                    }
+
                     LineEdit {
                         text: root.projection;
                         placeholder-text: "Projection";
                         edited => { root.projection = self.text; }
+                    }
+
+                    if root.errors.projection != "" : FieldError {
+                        text: root.errors.projection;
                     }
 
                     LineEdit {
@@ -240,16 +291,28 @@ export component EditFragrance inherits Rectangle {
                         edited => { root.longevity = self.text; }
                     }
 
+                    if root.errors.longevity != "" : FieldError {
+                        text: root.errors.longevity;
+                    }
+
                     LineEdit {
                         text: root.price;
                         placeholder-text: "Price";
                         edited => { root.price = self.text; }
                     }
 
+                    if root.errors.price != "" : FieldError {
+                        text: root.errors.price;
+                    }
+
                     LineEdit {
                         text: root.purchase_date;
-                        placeholder-text: "Purchase Date";
+                        placeholder-text: "Purchase Date (DD-MM-YYYY)";
                         edited => { root.purchase_date = self.text; }
+                    }
+
+                    if root.errors.purchase_date != "" : FieldError {
+                        text: root.errors.purchase_date;
                     }
                 }
             }
@@ -326,6 +389,10 @@ export component EditFragrance inherits Rectangle {
                         search_changed(text, choices) => {
                             return root.search_changed(text, choices);
                         }
+                    }
+
+                    if root.errors.notes != "" : FieldError {
+                        text: root.errors.notes;
                     }
                 }
             }
@@ -440,10 +507,18 @@ export component EditFragrance inherits Rectangle {
                         edited => { root.my_notes = self.text; }
                     }
 
+                    if root.errors.my_notes != "" : FieldError {
+                        text: root.errors.my_notes;
+                    }
+
                     LineEdit {
                         text: root.partner_notes;
                         placeholder-text: "Partner Notes";
                         edited => { root.partner_notes = self.text; }
+                    }
+
+                    if root.errors.partner_notes != "" : FieldError {
+                        text: root.errors.partner_notes;
                     }
                 }
             }
@@ -455,30 +530,10 @@ export component EditFragrance inherits Rectangle {
                     text: "Save";
 
                     clicked => {
-                        root.save_requested({
-                            id: root.fragrance.id,
-                            brand: root.brand,
-                            name: root.name,
-                            concentration: root.concentration,
-                            projection: root.projection,
-                            longevity: root.longevity,
-                            price: root.price,
-                            purchase_date: root.purchase_date,
-                            season_spring: root.season_spring,
-                            season_summer: root.season_summer,
-                            season_fall: root.season_fall,
-                            season_winter: root.season_winter,
-                            category: root.category,
-                            my_notes: root.my_notes,
-                            partner_notes: root.partner_notes,
-                            image_path: root.image_path,
-                            image_offset_x: root.offset_x / 1px,
-                            image_offset_y: root.offset_y / 1px,
-                            image_scale: root.scale,
-                            ratings: root.ratings,
-                            send_to_wishlist: root.is_wishlist,
-                            note_choices: notes-picker.choices,
-                        });
+                        root.errors = root.validate_fragrance(root.build-input());
+                        if (!root.errors.has_errors) {
+                            root.save_requested(root.build-input());
+                        }
                     }
                 }
 

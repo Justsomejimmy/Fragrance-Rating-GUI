@@ -8,7 +8,7 @@ import { AddFragrance } from "./pages/add_fragrance.slint";
 import { EditFragrance } from "./pages/edit_fragrance.slint";
 import { SettingsPage } from "./pages/settings.slint";
 import { RankingsPage } from "./pages/rankings.slint";
-import { Page, FragranceRow, FragranceData, FragranceInput, ImageSelection, DashboardData, AppUser, RankingItem, UserRating, ImportResult, NoteChoice } from "./types.slint";
+import { Page, FragranceRow, FragranceData, FragranceInput, ImageSelection, DashboardData, AppUser, RankingItem, UserRating, ImportResult, NoteChoice, ValidationErrors } from "./types.slint";
 import { Theme } from "./theme.slint";
 
 export component MainWindow inherits Window {
@@ -26,6 +26,7 @@ export component MainWindow inherits Window {
     callback import_from_url_requested(string) -> ImportResult;
     callback note_created(string, [NoteChoice]) -> [NoteChoice];
     callback search_changed(string, [NoteChoice]) -> [NoteChoice];
+    callback validate_fragrance(FragranceInput) -> ValidationErrors;
 
     width: 1200px;
     height: 800px;
@@ -164,6 +165,10 @@ export component MainWindow inherits Window {
                 search_changed(text, choices) => {
                     return root.search_changed(text, choices);
                 }
+
+                validate_fragrance(input) => {
+                    return root.validate_fragrance(input);
+                }
             }
 
             if root.current-page == Page.Add : AddFragrance {
@@ -194,6 +199,10 @@ export component MainWindow inherits Window {
 
                 search_changed(text, choices) => {
                     return root.search_changed(text, choices);
+                }
+
+                validate_fragrance(input) => {
+                    return root.validate_fragrance(input);
                 }
             }
 
