@@ -14,8 +14,13 @@ export global Theme {
     out property <length> radius-md: 12px;
     out property <length> radius-lg: 18px;
 
-    out property <length> space-xs: 6px;
-    out property <length> space-sm: 12px;
-    out property <length> space-md: 20px;
-    out property <length> space-lg: 30px;
+    in-out property <float> scale: 1.0;
+
+    out property <length> space-xs: 6px * root.scale;
+    out property <length> space-sm: 12px * root.scale;
+    out property <length> space-md: 20px * root.scale;
+    out property <length> space-lg: 30px * root.scale;
+
+    out property <length> title-size: 34px * root.scale;
+    out property <length> subtitle-size: 14px * root.scale;
 }

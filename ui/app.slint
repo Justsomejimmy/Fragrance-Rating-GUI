@@ -27,9 +27,12 @@ export component MainWindow inherits Window {
     callback note_created(string, [NoteChoice]) -> [NoteChoice];
     callback search_changed(string, [NoteChoice]) -> [NoteChoice];
     callback validate_fragrance(FragranceInput) -> ValidationErrors;
+    callback refresh_columns(int);
 
-    width: 1200px;
-    height: 800px;
+    preferred-width: 1200px;
+    preferred-height: 800px;
+    min-width: 760px;
+    min-height: 560px;
 
     in-out property <Page> current-page: Page.Dashboard;
     in property <[FragranceRow]> rows;
@@ -37,13 +40,16 @@ export component MainWindow inherits Window {
     in property <DashboardData> dashboard;
     in property <[AppUser]> users;
     in property <[string]> user_names;
+    in property <[string]> all_note_names;
     in property <[RankingItem]> ranking_items;
     in property <[UserRating]> initial_ratings;
     in property <[NoteChoice]> initial_note_choices;
     property <FragranceData> selected-fragrance;
     in-out property <string> selected-image-path: "";
     property <string> current-sort: "Rating: High → Low";
-    in property <[string]> all_note_names;
+
+    property <length> card-cell-width: 240px;
+    property <length> content-padding: 60px;
 
     title: "Fragrance Vault";
     background: #121212;
@@ -77,8 +83,18 @@ export component MainWindow inherits Window {
             }
         }
 
-        Rectangle {
+        content-area := Rectangle {
             horizontal-stretch: 1;
+
+            changed width => {
+                Theme.scale = max(1.0, (self.width / 1px) / 1200);
+
+                let available = (self.width / 1px) - (root.content-padding / 1px);
+                let cell = root.card-cell-width / 1px;
+                let computed-columns = floor(available / cell);
+                let clamped-columns = max(2, computed-columns);
+                root.refresh_columns(clamped-columns);
+            }
 
             if root.current-page == Page.Dashboard : Dashboard {
                 dashboard: root.dashboard;
@@ -93,7 +109,7 @@ export component MainWindow inherits Window {
                 rows: root.rows;
                 user_names: root.user_names;
                 all_note_names: root.all_note_names;
-                
+
                 fragrance_clicked(fragrance) => {
                     root.selected-fragrance = fragrance;
                     root.current-page = Page.Details;
@@ -157,17 +173,17 @@ export component MainWindow inherits Window {
                     return root.note_created(name, choices);
                 }
 
-                save_requested(input) => {
-                    root.save_requested(input);
-                    root.current-page = Page.Details;
-                }
-
                 search_changed(text, choices) => {
                     return root.search_changed(text, choices);
                 }
 
                 validate_fragrance(input) => {
                     return root.validate_fragrance(input);
+                }
+
+                save_requested(input) => {
+                    root.save_requested(input);
+                    root.current-page = Page.Details;
                 }
             }
 
@@ -188,6 +204,14 @@ export component MainWindow inherits Window {
                     return root.note_created(name, choices);
                 }
 
+                search_changed(text, choices) => {
+                    return root.search_changed(text, choices);
+                }
+
+                validate_fragrance(input) => {
+                    return root.validate_fragrance(input);
+                }
+
                 add_requested(input) => {
                     root.add_fragrance(input);
                     root.current-page = Page.Collection;
@@ -195,14 +219,6 @@ export component MainWindow inherits Window {
 
                 cancel_requested => {
                     root.current-page = Page.Collection;
-                }
-
-                search_changed(text, choices) => {
-                    return root.search_changed(text, choices);
-                }
-
-                validate_fragrance(input) => {
-                    return root.validate_fragrance(input);
                 }
             }
 

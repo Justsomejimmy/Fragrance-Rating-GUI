@@ -242,6 +242,7 @@ fn load_rows(
     wishlist: bool,
     rating_user: &str,
     note_filter: &str,
+    columns: usize,
 ) -> Vec<FragranceRow> {
     let users = database::user_repository::get_all(database);
     let ratings_map = build_ratings_map(database);
@@ -323,7 +324,7 @@ fn load_rows(
         _ => {}
     }
 
-    group_into_rows(&ui_fragrances, 3, 1)
+    group_into_rows(&ui_fragrances, columns, 1)
         .iter()
         .map(|row| FragranceRow {
             fragrances: ModelRc::new(VecModel::from(row.clone())),
@@ -540,11 +541,12 @@ fn refresh_all(
     rank_option: &str,
     rating_user: &str,
     note_filter: &str,
+    columns: usize,
 ) {
-    let rows = load_rows(database, sort_option, search_text, false, rating_user, note_filter);
+    let rows = load_rows(database, sort_option, search_text, false, rating_user, note_filter, columns);
     ui.set_rows(ModelRc::new(VecModel::from(rows)));
 
-    let wishlist_rows = load_rows(database, "Rating: High → Low", "", true, "", "");
+    let wishlist_rows = load_rows(database, "Rating: High → Low", "", true, "", "", columns);
     ui.set_wishlist_rows(ModelRc::new(VecModel::from(wishlist_rows)));
 
     ui.set_dashboard(build_dashboard(database));
@@ -585,8 +587,11 @@ fn main() {
     let current_rank_option = Rc::new(std::cell::RefCell::new(String::new()));
     let current_rating_user = Rc::new(std::cell::RefCell::new(String::new()));
     let current_note_filter = Rc::new(std::cell::RefCell::new(String::new()));
+    let current_columns = Rc::new(std::cell::RefCell::new(3usize));
 
-    refresh_all(&ui, &database, "Rating: High → Low", "", "Overall", "", "", "");
+    refresh_all(&ui, &database, "Rating: High → Low", "", "Overall", "", "", "", 3);
+
+    ui.on_validate_fragrance(|input| validate_input(&input));
 
     let sort_database = Rc::clone(&database);
     let sort_state = Rc::clone(&current_sort);
@@ -595,6 +600,7 @@ fn main() {
     let sort_rank_option = Rc::clone(&current_rank_option);
     let sort_rating_user = Rc::clone(&current_rating_user);
     let sort_note_filter = Rc::clone(&current_note_filter);
+    let sort_columns = Rc::clone(&current_columns);
     let sort_ui = ui.as_weak();
 
     ui.on_refresh_collection(
@@ -612,9 +618,10 @@ fn main() {
             let rank_option = sort_rank_option.borrow().clone();
             let rating_user = sort_rating_user.borrow().clone();
             let note_filter = sort_note_filter.borrow().clone();
+            let columns = *sort_columns.borrow();
 
             if let Some(ui) = sort_ui.upgrade() {
-                refresh_all(&ui, &sort_database, &sort_option, &search_text, &rank_mode, &rank_option, &rating_user, &note_filter);
+                refresh_all(&ui, &sort_database, &sort_option, &search_text, &rank_mode, &rank_option, &rating_user, &note_filter, columns);
             }
         }
     );
@@ -626,6 +633,7 @@ fn main() {
     let search_rank_option = Rc::clone(&current_rank_option);
     let search_rating_user = Rc::clone(&current_rating_user);
     let search_note_filter = Rc::clone(&current_note_filter);
+    let search_columns = Rc::clone(&current_columns);
     let search_ui = ui.as_weak();
 
     ui.on_search_collection(
@@ -636,9 +644,10 @@ fn main() {
             let rank_option = search_rank_option.borrow().clone();
             let rating_user = search_rating_user.borrow().clone();
             let note_filter = search_note_filter.borrow().clone();
+            let columns = *search_columns.borrow();
 
             if let Some(ui) = search_ui.upgrade() {
-                refresh_all(&ui, &search_database, &sort_option, &search_text, &rank_mode, &rank_option, &rating_user, &note_filter);
+                refresh_all(&ui, &search_database, &sort_option, &search_text, &rank_mode, &rank_option, &rating_user, &note_filter, columns);
             }
         }
     );
@@ -651,6 +660,7 @@ fn main() {
     let save_rank_option = Rc::clone(&current_rank_option);
     let save_rating_user = Rc::clone(&current_rating_user);
     let save_note_filter = Rc::clone(&current_note_filter);
+    let save_columns = Rc::clone(&current_columns);
 
     ui.on_save_requested(
         move |input| {
@@ -704,7 +714,8 @@ fn main() {
                 let rank_option = save_rank_option.borrow().clone();
                 let rating_user = save_rating_user.borrow().clone();
                 let note_filter = save_note_filter.borrow().clone();
-                refresh_all(&ui, &save_database, &sort_option, &search_text, &rank_mode, &rank_option, &rating_user, &note_filter);
+                let columns = *save_columns.borrow();
+                refresh_all(&ui, &save_database, &sort_option, &search_text, &rank_mode, &rank_option, &rating_user, &note_filter, columns);
             }
 
             println!("Updated fragrance: {}", input.name);
@@ -735,6 +746,7 @@ fn main() {
     let add_rank_option = Rc::clone(&current_rank_option);
     let add_rating_user = Rc::clone(&current_rating_user);
     let add_note_filter = Rc::clone(&current_note_filter);
+    let add_columns = Rc::clone(&current_columns);
     let add_ui = ui.as_weak();
 
     ui.on_add_fragrance(
@@ -788,7 +800,8 @@ fn main() {
                 let rank_option = add_rank_option.borrow().clone();
                 let rating_user = add_rating_user.borrow().clone();
                 let note_filter = add_note_filter.borrow().clone();
-                refresh_all(&ui, &add_database, &sort_option, &search_text, &rank_mode, &rank_option, &rating_user, &note_filter);
+                let columns = *add_columns.borrow();
+                refresh_all(&ui, &add_database, &sort_option, &search_text, &rank_mode, &rank_option, &rating_user, &note_filter, columns);
             }
 
             println!("Added fragrance: {}", input.name);
@@ -803,6 +816,7 @@ fn main() {
     let delete_rank_option = Rc::clone(&current_rank_option);
     let delete_rating_user = Rc::clone(&current_rating_user);
     let delete_note_filter = Rc::clone(&current_note_filter);
+    let delete_columns = Rc::clone(&current_columns);
 
     ui.on_delete_requested(
         move |id| {
@@ -816,7 +830,8 @@ fn main() {
                 let rank_option = delete_rank_option.borrow().clone();
                 let rating_user = delete_rating_user.borrow().clone();
                 let note_filter = delete_note_filter.borrow().clone();
-                refresh_all(&ui, &delete_database, &sort_option, &search_text, &rank_mode, &rank_option, &rating_user, &note_filter);
+                let columns = *delete_columns.borrow();
+                refresh_all(&ui, &delete_database, &sort_option, &search_text, &rank_mode, &rank_option, &rating_user, &note_filter, columns);
             }
 
             println!("Deleted fragrance with ID: {}", id);
@@ -853,6 +868,7 @@ fn main() {
     let add_user_rank_option = Rc::clone(&current_rank_option);
     let add_user_rating_user = Rc::clone(&current_rating_user);
     let add_user_note_filter = Rc::clone(&current_note_filter);
+    let add_user_columns = Rc::clone(&current_columns);
 
     ui.on_add_user_requested(
         move |name| {
@@ -865,7 +881,8 @@ fn main() {
                 let rank_option = add_user_rank_option.borrow().clone();
                 let rating_user = add_user_rating_user.borrow().clone();
                 let note_filter = add_user_note_filter.borrow().clone();
-                refresh_all(&ui, &add_user_database, &sort_option, &search_text, &rank_mode, &rank_option, &rating_user, &note_filter);
+                let columns = *add_user_columns.borrow();
+                refresh_all(&ui, &add_user_database, &sort_option, &search_text, &rank_mode, &rank_option, &rating_user, &note_filter, columns);
             }
         }
     );
@@ -878,6 +895,7 @@ fn main() {
     let update_user_rank_option = Rc::clone(&current_rank_option);
     let update_user_rating_user = Rc::clone(&current_rating_user);
     let update_user_note_filter = Rc::clone(&current_note_filter);
+    let update_user_columns = Rc::clone(&current_columns);
 
     ui.on_update_user_requested(
         move |id, name| {
@@ -890,7 +908,8 @@ fn main() {
                 let rank_option = update_user_rank_option.borrow().clone();
                 let rating_user = update_user_rating_user.borrow().clone();
                 let note_filter = update_user_note_filter.borrow().clone();
-                refresh_all(&ui, &update_user_database, &sort_option, &search_text, &rank_mode, &rank_option, &rating_user, &note_filter);
+                let columns = *update_user_columns.borrow();
+                refresh_all(&ui, &update_user_database, &sort_option, &search_text, &rank_mode, &rank_option, &rating_user, &note_filter, columns);
             }
         }
     );
@@ -903,6 +922,7 @@ fn main() {
     let delete_user_rank_option = Rc::clone(&current_rank_option);
     let delete_user_rating_user = Rc::clone(&current_rating_user);
     let delete_user_note_filter = Rc::clone(&current_note_filter);
+    let delete_user_columns = Rc::clone(&current_columns);
 
     ui.on_delete_user_requested(
         move |id| {
@@ -915,7 +935,8 @@ fn main() {
                 let rank_option = delete_user_rank_option.borrow().clone();
                 let rating_user = delete_user_rating_user.borrow().clone();
                 let note_filter = delete_user_note_filter.borrow().clone();
-                refresh_all(&ui, &delete_user_database, &sort_option, &search_text, &rank_mode, &rank_option, &rating_user, &note_filter);
+                let columns = *delete_user_columns.borrow();
+                refresh_all(&ui, &delete_user_database, &sort_option, &search_text, &rank_mode, &rank_option, &rating_user, &note_filter, columns);
             }
         }
     );
@@ -1012,7 +1033,38 @@ fn main() {
         }
     );
 
-    ui.on_validate_fragrance(|input| validate_input(&input));
+    let columns_ui = ui.as_weak();
+    let columns_database = Rc::clone(&database);
+    let columns_state = Rc::clone(&current_columns);
+    let columns_sort = Rc::clone(&current_sort);
+    let columns_search = Rc::clone(&current_search);
+    let columns_rank_mode = Rc::clone(&current_rank_mode);
+    let columns_rank_option = Rc::clone(&current_rank_option);
+    let columns_rating_user = Rc::clone(&current_rating_user);
+    let columns_note_filter = Rc::clone(&current_note_filter);
+
+    ui.on_refresh_columns(
+        move |new_columns| {
+            let new_columns = new_columns.max(2) as usize;
+            let mut current = columns_state.borrow_mut();
+
+            if *current == new_columns {
+                return;
+            }
+            *current = new_columns;
+            drop(current);
+
+            if let Some(ui) = columns_ui.upgrade() {
+                let sort_option = columns_sort.borrow().clone();
+                let search_text = columns_search.borrow().clone();
+                let rank_mode = columns_rank_mode.borrow().clone();
+                let rank_option = columns_rank_option.borrow().clone();
+                let rating_user = columns_rating_user.borrow().clone();
+                let note_filter = columns_note_filter.borrow().clone();
+                refresh_all(&ui, &columns_database, &sort_option, &search_text, &rank_mode, &rank_option, &rating_user, &note_filter, new_columns);
+            }
+        }
+    );
 
     ui.run().unwrap();
 }
