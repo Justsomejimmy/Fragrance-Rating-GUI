@@ -67,10 +67,10 @@ Fragrance Vault
 - [x] Searchable, creatable fragrance notes
 - [x] Website auto-import
 - [x] Field validation
+- [x] Adjustable, auto-scaling window sizing
 
 ## Planned
 
-- Adjustable, auto-scaling window sizing
 - Packaged standalone executable
 - CI/CD pipeline
 
